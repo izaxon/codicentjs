@@ -1,6 +1,0 @@
-(function (window) {
-  window.Codicent = {
-    apiBaseUrl: 'https://codicent.com/',
-    postMessage: () => {},
-  };
-})(window);

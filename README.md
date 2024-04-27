@@ -4,7 +4,7 @@ To create a JavaScript file for injecting Codicent, I'll guide you through the p
 
 Step 1: Create the JavaScript file
 
-Create a new file named codicent-inject.js with the following content:
+Create a new file named codicentjs.js with the following content:
 
 (function (window) {
   window.Codicent = {
@@ -24,16 +24,16 @@ To obfuscate the JavaScript file, you can use a tool like UglifyJS or JavaScript
 Install UglifyJS using npm:
 
 npm install uglify-js
-Then, run the following command to obfuscate the codicent-inject.js file:
+Then, run the following command to obfuscate the codicentjs.js file:
 
-uglifyjs codicent-inject.js --output codicent-inject.min.js
-This will generate a minified and obfuscated version of your JavaScript file, named codicent-inject.min.js.
+`uglifyjs codicentjs.js --output codicentjs.min.js`
+This will generate a minified and obfuscated version of your JavaScript file, named codicentjs.min.js.
 
 Step 3: Host the file on GitHub
 
 Create a new GitHub repository or use an existing one. Create a new file in the repository by clicking the "New file" button.
 
-Paste the contents of the codicent-inject.min.js file into the new file, and give it a name like codicent-inject.min.js.
+Paste the contents of the codicentjs.min.js file into the new file, and give it a name like codicentjs.min.js.
 
 Step 4: Serve the file using GitHub Pages (optional)
 
@@ -42,7 +42,7 @@ If you want to serve the file using GitHub Pages, you'll need to create a GitHub
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="codicent-inject.min.js"></script>
+    <script src="codicentjs.min.js"></script>
   </head>
   <body>
     <!-- Your page content -->
@@ -54,7 +54,7 @@ Step 5: Link to the file
 
 Now, you can link to the obfuscated JavaScript file in your HTML pages using a script tag:
 
-<script src="https://your-username.github.io/your-repo-name/codicent-inject.min.js"></script>
+<script src="https://your-username.github.io/your-repo-name/codicentjs.min.js"></script>
 Replace your-username and your-repo-name with your actual GitHub username and repository name, respectively.
 
 That's it! You've successfully created, obfuscated, and hosted your JavaScript file for injecting Codicent.
