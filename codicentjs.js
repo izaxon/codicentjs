@@ -108,6 +108,7 @@
       }
     },
     _getMessagesContent: async (ids) => {
+      if (ids.length === 0) return [];
       const response = await fetch(`/app/GetMessagesContent`, {
         method: "POST",
         headers: [
