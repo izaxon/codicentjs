@@ -107,27 +107,28 @@
         throw error;
       }
     },
-    _getMessagesContent: async (ids) => {
-      if (ids.length === 0) return [];
-      const response = await fetch(`/app/GetMessagesContent`, {
-        method: "POST",
-        headers: [
-          ["Content-Type", "application/json; charset=utf-8"],
-          ["Authorization", `Bearer ${Api._accessToken}`],
-        ],
-        body: JSON.stringify(ids),
-      });
-
-      const messages = await response.json();
-      messages.forEach((m) => {
-        m.createdAt = new Date(Date.parse(m.createdAt));
-      });
-
-      return messages;
-    },
     getMessages: async (props = {}) => {
       const { token, log, baseUrl } = window.Codicent;
       const { start, length, search, afterTimestamp, beforeTimestamp } = { ...{ start: 0, length: 10, search: "" }, ...props };
+      const getMessagesContent = async (ids) => {
+        if (ids.length === 0) return [];
+        const response = await fetch(`/app/GetMessagesContent`, {
+          method: "POST",
+          headers: [
+            ["Content-Type", "application/json; charset=utf-8"],
+            ["Authorization", `Bearer ${Api._accessToken}`],
+          ],
+          body: JSON.stringify(ids),
+        });
+
+        const messages = await response.json();
+        messages.forEach((m) => {
+          m.createdAt = new Date(Date.parse(m.createdAt));
+        });
+
+        return messages;
+      };
+
       try {
         const response = await fetch(`${baseUrl}app/GetChatMessages?start=${start}&length=${length}&search=${encodeURIComponent(search)}${afterTimestamp ? `&afterTimestamp=${afterTimestamp.toISOString()}` : ""}${beforeTimestamp ? `&beforeTimestamp=${beforeTimestamp.toISOString()}` : ""}`,
           {
@@ -145,7 +146,7 @@
 
         const messages = await response.json();
         const messagesLackingContent = messages.filter((m) => !m.content);
-        _getMessagesContent(messagesLackingContent.map(m => m.id)).forEach((m, i) => messagesLackingContent[i].content = m.content);
+        getMessagesContent(messagesLackingContent.map(m => m.id)).forEach((m, i) => messagesLackingContent[i].content = m.content);
         messages.forEach((m) => {
           m.createdAt = new Date(Date.parse(m.createdAt));
         });
