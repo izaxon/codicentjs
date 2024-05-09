@@ -54,7 +54,7 @@ Step 5: Link to the file
 
 Now, you can link to the obfuscated JavaScript file in your HTML pages using a script tag:
 
-<script src="https://your-username.github.io/your-repo-name/codicentjs.min.js"></script>
+<script src="https://izaxon.github.io/codicentjs/codicentjs.min.js"></script>
 Replace your-username and your-repo-name with your actual GitHub username and repository name, respectively.
 
 That's it! You've successfully created, obfuscated, and hosted your JavaScript file for injecting Codicent.
