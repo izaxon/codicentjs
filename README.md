@@ -85,3 +85,17 @@ window.Codicent.log = function(message) {
   console.log('Codicent log:', message);
 };
 ```
+
+## Building
+
+Step: Obfuscate the JavaScript file
+
+To obfuscate the JavaScript file, you can use a tool like UglifyJS or JavaScript Obfuscator. Here, I'll show you how to use UglifyJS.
+
+Install UglifyJS using npm:
+
+npm install -g uglify-js
+Then, run the following command to obfuscate the codicentjs.js file:
+
+`uglifyjs codicentjs.js --output codicentjs.min.js`
+This will generate a minified and obfuscated version of your JavaScript file, named codicentjs.min.js.

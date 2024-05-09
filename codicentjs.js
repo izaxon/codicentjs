@@ -111,7 +111,7 @@
       const { token, log, baseUrl } = window.Codicent;
       const { start, length, search, afterTimestamp } = { ...{ start: 0, length: 10, search: "" }, ...props };
       try {
-        const response = await fetch(`${baseUrl}/app/GetChatMessages?start=${start}&length=${length}&search=${encodeURIComponent(search)}${afterTimestamp ? `&afterTimestamp=${afterTimestamp.toISOString()}` : ""}`,
+        const response = await fetch(`${baseUrl}app/GetChatMessages?start=${start}&length=${length}&search=${encodeURIComponent(search)}${afterTimestamp ? `&afterTimestamp=${afterTimestamp.toISOString()}` : ""}`,
           {
             method: "GET",
             headers: [
