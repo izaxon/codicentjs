@@ -107,6 +107,23 @@
         throw error;
       }
     },
+    _getMessagesContent: async (ids) => {
+      const response = await fetch(`/app/GetMessagesContent`, {
+        method: "POST",
+        headers: [
+          ["Content-Type", "application/json; charset=utf-8"],
+          ["Authorization", `Bearer ${Api._accessToken}`],
+        ],
+        body: JSON.stringify(ids),
+      });
+
+      const messages = await response.json();
+      messages.forEach((m) => {
+        m.createdAt = new Date(Date.parse(m.createdAt));
+      });
+
+      return messages;
+    },
     getMessages: async (props = {}) => {
       const { token, log, baseUrl } = window.Codicent;
       const { start, length, search, afterTimestamp, beforeTimestamp } = { ...{ start: 0, length: 10, search: "" }, ...props };
@@ -126,11 +143,13 @@
         }
 
         const messages = await response.json();
+        const messagesLackingContent = messages.filter((m) => !m.content);
+        _getMessagesContent(messagesLackingContent.map(m => m.id)).forEach((m, i) => messagesLackingContent[i].content = m.content);
         messages.forEach((m) => {
           m.createdAt = new Date(Date.parse(m.createdAt));
         });
 
-        return messages;
+        return messages.filter(m => m.content.includes("#hidden") === false);
       } catch (error) {
         log(`Error getting messages: ${error.message}`);
         throw error;
