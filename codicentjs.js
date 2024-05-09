@@ -35,7 +35,7 @@
           await connection.start();
         } catch (err) {
           log(err);
-          setTimeout(startSignalR, 5000);
+          setTimeout(startSignalR, 15000);
         }
       };
 
