@@ -109,9 +109,9 @@
     },
     getMessages: async (props = {}) => {
       const { token, log, baseUrl } = window.Codicent;
-      const { start, length, search, afterTimestamp } = { ...{ start: 0, length: 10, search: "" }, ...props };
+      const { start, length, search, afterTimestamp, beforeTimestamp } = { ...{ start: 0, length: 10, search: "" }, ...props };
       try {
-        const response = await fetch(`${baseUrl}app/GetChatMessages?start=${start}&length=${length}&search=${encodeURIComponent(search)}${afterTimestamp ? `&afterTimestamp=${afterTimestamp.toISOString()}` : ""}`,
+        const response = await fetch(`${baseUrl}app/GetChatMessages?start=${start}&length=${length}&search=${encodeURIComponent(search)}${afterTimestamp ? `&afterTimestamp=${afterTimestamp.toISOString()}` : ""}${beforeTimestamp ? `&beforeTimestamp=${beforeTimestamp.toISOString()}` : ""}`,
           {
             method: "GET",
             headers: [
