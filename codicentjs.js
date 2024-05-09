@@ -146,7 +146,8 @@
 
         const messages = await response.json();
         const messagesLackingContent = messages.filter((m) => !m.content);
-        getMessagesContent(messagesLackingContent.map(m => m.id)).forEach((m, i) => messagesLackingContent[i].content = m.content);
+        const content = await getMessagesContent(messagesLackingContent.map(m => m.id));
+        content.forEach((m, i) => messagesLackingContent[i].content = m.content);
         messages.forEach((m) => {
           m.createdAt = new Date(Date.parse(m.createdAt));
         });
