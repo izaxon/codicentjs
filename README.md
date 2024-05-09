@@ -1,60 +1,87 @@
-# codicentjs
+# Codicent JavaScript Library Documentation
 
-To create a JavaScript file for injecting Codicent, I'll guide you through the process of creating a simple JavaScript file, obfuscating it, and hosting it on GitHub.
+## Including the Library in Your HTML
 
-Step 1: Create the JavaScript file
+To include the Codicent JavaScript library in your HTML file, add the following script tag in your HTML file:
 
-Create a new file named codicentjs.js with the following content:
-
-(function (window) {
-  window.Codicent = {
-    // Your Codicent object properties and methods go here
-    // For example:
-    apiEndpoint: 'https://example.com/api',
-    clientId: 'my-client-id',
-    theme: 'light'
-  };
-})(window);
-Replace the placeholder values with your actual Codicent object properties and methods.
-
-Step 2: Obfuscate the JavaScript file
-
-To obfuscate the JavaScript file, you can use a tool like UglifyJS or JavaScript Obfuscator. Here, I'll show you how to use UglifyJS.
-
-Install UglifyJS using npm:
-
-npm install uglify-js
-Then, run the following command to obfuscate the codicentjs.js file:
-
-`uglifyjs codicentjs.js --output codicentjs.min.js`
-This will generate a minified and obfuscated version of your JavaScript file, named codicentjs.min.js.
-
-Step 3: Host the file on GitHub
-
-Create a new GitHub repository or use an existing one. Create a new file in the repository by clicking the "New file" button.
-
-Paste the contents of the codicentjs.min.js file into the new file, and give it a name like codicentjs.min.js.
-
-Step 4: Serve the file using GitHub Pages (optional)
-
-If you want to serve the file using GitHub Pages, you'll need to create a GitHub Pages site. Create a new file named index.html in the repository, and add the following content:
-
-<!DOCTYPE html>
-<html>
-  <head>
-    <script src="codicentjs.min.js"></script>
-  </head>
-  <body>
-    <!-- Your page content -->
-  </body>
-</html>
-Then, go to your repository settings, click "GitHub Pages" on the left, and set the GitHub Pages site to use the index.html file.
-
-Step 5: Link to the file
-
-Now, you can link to the obfuscated JavaScript file in your HTML pages using a script tag:
-
+```html
 <script src="https://izaxon.github.io/codicentjs/codicentjs.min.js"></script>
-Replace your-username and your-repo-name with your actual GitHub username and repository name, respectively.
+```
 
-That's it! You've successfully created, obfuscated, and hosted your JavaScript file for injecting Codicent.
+## Initialization
+
+To initialize the library, you need to call the `init` function and pass an object with the following properties:
+
+- `token`: Your Codicent API token. This is required.
+- `signalRHost`: The URL of your SignalR Host. This is optional. 
+
+```javascript
+window.Codicent.init({
+  token: 'YOUR_TOKEN',
+  signalRHost: 'YOUR_SIGNALR_HOST_URL',
+});
+```
+
+## Upload a File
+
+To upload a file, call the `upload` function and pass a `FormData` object. This function returns the ID of the uploaded file.
+
+```javascript
+const formData = new FormData();
+formData.append('file', yourFile);
+const id = await window.Codicent.upload(formData);
+```
+
+## Post a Message
+
+To post a message, call the `postMessage` function and pass an object with the following properties:
+
+- `message`: The content of your message. This is required.
+- `parentId`: The ID of the parent message. This is optional.
+- `type`: The type of your message. This is optional.
+
+```javascript
+const messageId = await window.Codicent.postMessage({
+  message: 'YOUR_MESSAGE_CONTENT',
+  parentId: 'PARENT_MESSAGE_ID', // optional
+  type: 'YOUR_MESSAGE_TYPE', // optional
+});
+```
+
+## Get Messages
+
+To get messages, call the `getMessages` function and pass an object with the following properties:
+
+- `start`: The starting index of the messages to fetch. This is optional and defaults to 0.
+- `length`: The number of messages to fetch. This is optional and defaults to 10.
+- `search`: The search query. This is optional and defaults to an empty string.
+- `afterTimestamp`: The timestamp to fetch messages after. This is optional.
+
+```javascript
+const messages = await window.Codicent.getMessages({
+  start: 0, // optional
+  length: 10, // optional
+  search: 'YOUR_SEARCH_QUERY', // optional
+  afterTimestamp: new Date('2024-01-01'), // optional
+});
+```
+
+## Handle New Messages
+
+To handle new messages, you can define a `handleMessage` function. This function will be called whenever a new message is received.
+
+```javascript
+window.Codicent.handleMessage = function(message) {
+  console.log('New message received:', message);
+};
+```
+
+## Logging
+
+To handle logging, you can define a `log` function. This function will be called whenever there's something to log.
+
+```javascript
+window.Codicent.log = function(message) {
+  console.log('Codicent log:', message);
+};
+```
