@@ -16,10 +16,12 @@ To initialize the library, you need to call the `init` function and pass an obje
 - `signalRHost`: The URL of your SignalR Host. This is optional. 
 
 ```javascript
-window.Codicent.init({
-  token: 'YOUR_TOKEN',
-  signalRHost: 'YOUR_SIGNALR_HOST_URL',
-});
+window.onload = () => {
+  window.Codicent.init({
+    token: 'YOUR_TOKEN',
+    signalRHost: 'YOUR_SIGNALR_HOST_URL',
+  });
+}
 ```
 
 ## Upload a File
