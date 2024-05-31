@@ -159,4 +159,18 @@
       }
     },
   };
+
+  document.addEventListener('DOMContentLoaded', function () {
+    // Select all buttons with the data-codicent-type attribute
+    const codicentButtons = document.querySelectorAll('button[data-codicent-type]');
+    codicentButtons.forEach(button => {
+      button.addEventListener('click', function () {
+        const messageType = button.getAttribute('data-codicent-type');
+        const message = button.getAttribute('data-codicent-message');
+        if (messageType === 'send') {
+          window.Codicent.postMessage({ message });
+        }
+      });
+    });
+  });
 })(window);

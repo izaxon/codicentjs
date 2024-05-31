@@ -88,6 +88,16 @@ window.Codicent.log = function(message) {
 };
 ```
 
+## Codicent UI HTML Elements
+With `codicentjs` you can easily create Codicent UI elements in your HTML file. Here are some examples:
+
+### Log Button
+```html
+<button data-codicent-type="send" data-codicent-message="#log button pressed">Send message to codicent</button>
+```
+The log button automatically attaches to the click handler of the button and sends the message to Codicent in the format `#log button pressed` when clicked.
+
+
 ## Building
 
 Step: Obfuscate the JavaScript file
