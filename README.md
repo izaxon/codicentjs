@@ -97,6 +97,11 @@ With `codicentjs` you can easily create Codicent UI elements in your HTML file. 
 ```
 The log button automatically attaches to the click handler of the button and sends the message to Codicent in the format `#log button pressed` when clicked.
 
+### Message Counter
+```html
+<div data-codicent-type="counter" data-codicent-search="@codicent #log"></div>
+```
+The counter element automatically fetches the number of messages that contain the search query `@codicent #log` and displays the count.
 
 ## Building
 
