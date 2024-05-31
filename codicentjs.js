@@ -49,6 +49,8 @@
         log(message);
         handleMessage(message);
       });
+
+      refreshUI();
     },
     upload: async (formData) => {
       const { log, baseUrl, token } = window.Codicent;
@@ -116,7 +118,7 @@
           method: "POST",
           headers: [
             ["Content-Type", "application/json; charset=utf-8"],
-            ["Authorization", `Bearer ${Api._accessToken}`],
+            ["Authorization", `Bearer ${token}`],
           ],
           body: JSON.stringify(ids),
         });
@@ -145,14 +147,18 @@
         }
 
         const messages = await response.json();
-        const messagesLackingContent = messages.filter((m) => !m.content);
-        const content = await getMessagesContent(messagesLackingContent.map(m => m.id));
-        content.forEach((m, i) => messagesLackingContent[i].content = m.content);
+        if (props.skipContent !== true) {
+          const messagesLackingContent = messages.filter((m) => !m.content);
+          const content = await getMessagesContent(messagesLackingContent.map(m => m.id));
+          content.forEach((m, i) => messagesLackingContent[i].content = m.content);
+          messages = messages.filter(m => m.content.includes("#hidden") === false);
+        }
+
         messages.forEach((m) => {
           m.createdAt = new Date(Date.parse(m.createdAt));
         });
 
-        return messages.filter(m => m.content.includes("#hidden") === false);
+        return messages;
       } catch (error) {
         log(`Error getting messages: ${error.message}`);
         throw error;
@@ -160,7 +166,7 @@
     },
   };
 
-  document.addEventListener('DOMContentLoaded', function () {
+  const refreshUI = () => {
     // Select all buttons with the data-codicent-type attribute
     const codicentButtons = document.querySelectorAll('button[data-codicent-type]');
     codicentButtons.forEach(button => {
@@ -172,5 +178,18 @@
         }
       });
     });
-  });
+
+    // Select all elements with the data-codicent-type="counter" attribute
+    const counterElements = document.querySelectorAll('[data-codicent-type="counter"]');
+    console.log(counterElements)
+    counterElements.forEach(element => {
+      const searchQuery = element.getAttribute('data-codicent-search');
+      window.Codicent.getMessages({ search: searchQuery, length: 100000, skipContent: true }).then(messages => {
+        const messageCount = messages.length;
+        element.textContent = messageCount;
+      }).catch(console.error);
+    });
+  };
+
+  // document.addEventListener('DOMContentLoaded', refreshUI);
 })(window);
