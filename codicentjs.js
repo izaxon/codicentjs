@@ -146,7 +146,7 @@
           throw new Error(`HTTP error: ${response.status}`);
         }
 
-        const messages = await response.json();
+        let messages = await response.json();
         if (props.skipContent !== true) {
           const messagesLackingContent = messages.filter((m) => !m.content);
           const content = await getMessagesContent(messagesLackingContent.map(m => m.id));
