@@ -11,6 +11,7 @@
    <button id="getButton">Get messages</button>
    <button data-codicent-type="send" data-codicent-message="@codicent #log Hello, world!">Send message</button>
    <h1 data-codicent-type="counter" data-codicent-search="@codicent #log"></h1>
+   <!-- <button id="getDataButton">Get data messages</button> -->
    <script>
       window.onload = () => {
          window.Codicent.token = "ENTER_CODICENT_API_TOKEN_HERE";
@@ -38,6 +39,17 @@
                console.error("ERROR", error);
             });
       };
+
+      // document.getElementById("getDataButton").onclick = function () {
+      //    console.log("Getting data messages...");
+      //    window.Codicent.getDataMessages({ codicent: "mycodicent", tags: ["thetag"] })
+      //       .then(response => {
+      //          console.log("DATA MESSAGES", response);
+      //       })
+      //       .catch(error => {
+      //          console.error("ERROR", error);
+      //       });
+      // };
    </script>
 
 </body>

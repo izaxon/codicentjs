@@ -114,7 +114,7 @@
       const { start, length, search, afterTimestamp, beforeTimestamp } = { ...{ start: 0, length: 10, search: "" }, ...props };
       const getMessagesContent = async (ids) => {
         if (ids.length === 0) return [];
-        const response = await fetch(`/app/GetMessagesContent`, {
+        const response = await fetch(`${baseUrl}app/GetMessagesContent`, {
           method: "POST",
           headers: [
             ["Content-Type", "application/json; charset=utf-8"],
@@ -161,6 +161,30 @@
         return messages;
       } catch (error) {
         log(`Error getting messages: ${error.message}`);
+        throw error;
+      }
+    },
+    getDataMessages: async ({ codicent, tags, search }) => {
+      const { token, log, baseUrl } = window.Codicent;
+      try {
+        const response = await fetch(`${baseUrl}app/FindDataMessages?project=${codicent}${search ? "&search=" + encodeURIComponent(search) : ""}`,
+          {
+            method: "POST",
+            headers: [
+              ["Content-Type", "application/json; charset=utf-8"],
+              ["Authorization", `Bearer ${token}`],
+            ],
+            body: JSON.stringify({ tags }),
+          }
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        log(`Error getting data messages: ${error.message}`);
         throw error;
       }
     },
