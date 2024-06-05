@@ -52,6 +52,7 @@
 
       refreshUI();
     },
+    refresh: () => refreshUI(),
     upload: async (formData) => {
       const { log, baseUrl, token } = window.Codicent;
       try {
