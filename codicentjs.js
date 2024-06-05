@@ -147,11 +147,18 @@
         }
 
         let messages = await response.json();
+
         if (props.skipContent !== true) {
           const messagesLackingContent = messages.filter((m) => !m.content);
           const content = await getMessagesContent(messagesLackingContent.map(m => m.id));
           content.forEach((m, i) => messagesLackingContent[i].content = m.content);
           messages = messages.filter(m => m.content.includes("#hidden") === false);
+
+          if (search) {
+            const tags = getTags(search);
+            const mentions = getMentions(search);
+            messages = messages.filter(m => tags.every(t => getTags(m.content).includes(t)) && mentions.every(x => getMentions(m.content).includes(x)));
+          }
         }
 
         messages.forEach((m) => {
@@ -190,6 +197,54 @@
     },
   };
 
+  const isData = (message) => {
+    if (!message) return false;
+    const start = message.indexOf("{");
+    const end = message.lastIndexOf("}");
+    if (start !== -1 && end !== -1) {
+      const data = message.substring(start, end + 1);
+      try {
+        JSON.parse(data);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    return false;
+  };
+
+  const getContentWithoutData = (message) => {
+    if (isData(message)) {
+      const start = message.indexOf("{");
+      const end = message.lastIndexOf("}");
+      const content = message.substring(0, start) + message.substring(end + 1);
+      return content;
+    }
+
+    return message;
+  };
+
+  const getMentions = (text) => {
+    const matches = getContentWithoutData(text).match(/(?<=^|\s|\n)@[a-zA-Z0-9_-]+(?=\s|$|\n)/g);
+    if (!matches) {
+      return [];
+    }
+    return matches.map((m) => m.trim());
+  };
+
+  const getTags = (text) => {
+    if (!text) {
+      return [];
+    }
+
+    const matches = getContentWithoutData(text).match(/(?<=^|\s|\n)#[a-zA-Z0-9_-]+(?=\s|$|\n)/g);
+    if (!matches) {
+      return [];
+    }
+    return matches.map((m) => m.trim());
+  };
+
   const refreshUI = () => {
     // Select all buttons with the data-codicent-type attribute
     const codicentButtons = document.querySelectorAll('button[data-codicent-type]');
@@ -205,10 +260,10 @@
 
     // Select all elements with the data-codicent-type="counter" attribute
     const counterElements = document.querySelectorAll('[data-codicent-type="counter"]');
-    console.log(counterElements)
     counterElements.forEach(element => {
       const searchQuery = element.getAttribute('data-codicent-search');
-      let search = { search: searchQuery, length: 100000, skipContent: true };
+      const skipContent = !!element.getAttribute('data-codicent-skip-content');
+      let search = { search: searchQuery, length: 100000, skipContent };
       const afterTimestamp = element.getAttribute('data-codicent-after');
       if (afterTimestamp) {
         search.afterTimestamp = new Date(afterTimestamp);
