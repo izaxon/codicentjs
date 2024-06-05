@@ -208,7 +208,16 @@
     console.log(counterElements)
     counterElements.forEach(element => {
       const searchQuery = element.getAttribute('data-codicent-search');
-      window.Codicent.getMessages({ search: searchQuery, length: 100000, skipContent: true }).then(messages => {
+      let search = { search: searchQuery, length: 100000, skipContent: true };
+      const afterTimestamp = element.getAttribute('data-codicent-after');
+      if (afterTimestamp) {
+        search.afterTimestamp = new Date(afterTimestamp);
+      }
+      const beforeTimestamp = element.getAttribute('data-codicent-before');
+      if (beforeTimestamp) {
+        search.beforeTimestamp = new Date(beforeTimestamp);
+      }
+      window.Codicent.getMessages(search).then(messages => {
         const messageCount = messages.length;
         element.textContent = messageCount;
       }).catch(console.error);

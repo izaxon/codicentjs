@@ -11,10 +11,12 @@
    <button id="getButton">Get messages</button>
    <button data-codicent-type="send" data-codicent-message="@codicent #log Hello, world!">Send message</button>
    <h1 data-codicent-type="counter" data-codicent-search="@codicent #log"></h1>
+   <h1 data-codicent-type="counter" data-codicent-search="@codicent #log" data-codicent-after="2024-03-15 22:00"></h1>
    <!-- <button id="getDataButton">Get data messages</button> -->
    <script>
       window.onload = () => {
-         window.Codicent.token = "ENTER_CODICENT_API_TOKEN_HERE";
+         // window.Codicent.token = "ENTER_CODICENT_API_TOKEN_HERE";
+         window.Codicent.token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjJlMTliNjNmLWQxNDgtNGRmMi04MzMxLTZlZGE3ZTQzNjQ1ZCIsIm5pY2tuYW1lIjoiam9oYW4iLCJ1c2VySWQiOiIyZTE5YjYzZi1kMTQ4LTRkZjItODMzMS02ZWRhN2U0MzY0NWQiLCJwcm9qZWN0IjoiY29kaWNlbnQiLCJuYmYiOjE3MTc1ODkwMjAsImV4cCI6MTc0OTEyNTAyMCwiaWF0IjoxNzE3NTg5MDIwfQ.eJPQJ5kk_OPzT4JxD221IEMcinSJw2KnXlDQMHhJFFs";
          window.Codicent.init();
       };
 
