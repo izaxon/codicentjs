@@ -172,6 +172,36 @@
         throw error;
       }
     },
+    getMessages2: async (props = {}) => {
+      const { token, log, baseUrl } = window.Codicent;
+      const { start, length, search, afterTimestamp, beforeTimestamp, tags, noTags } = { ...{ start: 0, length: 10 }, ...props };
+      try {
+        const response = await fetch(`${baseUrl}api/GetMessages`,
+          {
+            method: "POST",
+            headers: [
+              ["Content-Type", "application/json; charset=utf-8"],
+              ["Authorization", `Bearer ${token}`],
+            ],
+            body: JSON.stringify({ start, length, search, afterTimestamp, beforeTimestamp, tags, noTags }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`);
+        }
+
+        let messages = await response.json();
+        messages.forEach((m) => {
+          m.createdAt = new Date(Date.parse(m.createdAt));
+        });
+
+        return messages;
+      } catch (error) {
+        log(`Error getting messages: ${error.message}`);
+        throw error;
+      }
+    },
     getDataMessages: async ({ codicent, tags, search }) => {
       const { token, log, baseUrl } = window.Codicent;
       try {
