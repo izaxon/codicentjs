@@ -88,6 +88,14 @@ window.Codicent.log = function(message) {
 };
 ```
 
+## Codicent AI chat
+
+To get a chat reply from Codicent AI, call the `getChatReply` function and pass the message you want to get a reply for.
+
+```javascript
+const reply = await window.Codicent.getChatReply("Write a short text about Codicent!");
+```
+
 ## Codicent UI HTML Elements
 With `codicentjs` you can easily create Codicent UI elements in your HTML file. Here are some examples:
 

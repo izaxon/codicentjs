@@ -226,6 +226,26 @@
         throw error;
       }
     },
+    getChatReply: async (message) => {
+      const { token, log, baseUrl } = window.Codicent;
+      try {
+        const response = await fetch(`${baseUrl}ai/GetAiReply?message=${encodeURIComponent(message)}`,
+          {
+            method: "GET",
+            headers: [["Authorization", `Bearer ${token}`]],
+          }
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`);
+        }
+
+        const reply = await response.text();
+        return reply;
+      } catch (error) {
+        log(`Error getting chat reply: ${error.message}`);
+        throw error;
+      }
+    }
   };
 
   const isData = (message) => {

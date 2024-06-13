@@ -9,6 +9,7 @@
    <!-- Your page content -->
    <button id="testButton">Post test message</button>
    <button id="getButton">Get messages</button>
+   <button id="testChat">AI chat</button>
    <button data-codicent-type="send" data-codicent-message="@codicent #log Hello, world!">Send message</button>
    <h1 data-codicent-type="counter" data-codicent-search="@codicent #log"></h1>
    <h1 data-codicent-type="counter" data-codicent-search="@codicent #log" data-codicent-after="2024-03-15 22:00"></h1>
@@ -36,6 +37,16 @@
          window.Codicent.getMessages2({ length: 10, tags: ["log"], noTags: [] })
             .then(response => {
                console.log("MESSAGES", response);
+            })
+            .catch(error => {
+               console.error("ERROR", error);
+            });
+      };
+
+      document.getElementById("testChat").onclick = function () {
+         window.Codicent.getChatReply("Write a short text about Codicent!")
+            .then(response => {
+               console.log("RESPONSE", response);
             })
             .catch(error => {
                console.error("ERROR", error);
