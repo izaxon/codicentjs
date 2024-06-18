@@ -229,7 +229,7 @@
     getChatReply: async (message) => {
       const { token, log, baseUrl } = window.Codicent;
       try {
-        const response = await fetch(`${baseUrl}ai/GetAiReply?message=${encodeURIComponent(message)}`,
+        const response = await fetch(`${baseUrl}api/GetChatReply2?message=${encodeURIComponent(message)}`,
           {
             method: "GET",
             headers: [["Authorization", `Bearer ${token}`]],
