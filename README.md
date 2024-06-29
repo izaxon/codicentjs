@@ -30,8 +30,8 @@ To upload a file, call the `upload` function and pass a `FormData` object. This 
 
 ```javascript
 const formData = new FormData();
-formData.append('file', yourFile);
-const id = await window.Codicent.upload(formData);
+formData.append('file', file);
+const id = await window.Codicent.upload(formData, file.name);
 ```
 
 ## Post a Message

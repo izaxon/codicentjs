@@ -53,10 +53,10 @@
       refreshUI();
     },
     refresh: () => refreshUI(),
-    upload: async (formData) => {
+    upload: async (formData, filename) => {
       const { log, baseUrl, token } = window.Codicent;
       try {
-        const response = await fetch(`${baseUrl}app/UploadFile`, {
+        const response = await fetch(`${baseUrl}app/UploadFile?filename=${encodeURIComponent(filename)}`, {
           method: 'POST',
           headers: {
             "Authorization": `Bearer ${token}`,
