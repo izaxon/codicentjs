@@ -54,9 +54,12 @@
             });
       };
 
-      document.getElementById("testUpload").onchange = function () {
+      document.getElementById("testUpload").onchange = function (e) {
          console.log("Uploading file...");
-         window.Codicent.upload(this.files[0])
+         const file = e.target.files[0];
+         const formData = new FormData();
+         formData.append('file', file);
+         window.Codicent.upload(formData, file.name)
             .then(response => {
                console.log("RESPONSE", response);
             })
