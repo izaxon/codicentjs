@@ -111,6 +111,16 @@ The log button automatically attaches to the click handler of the button and sen
 ```
 The counter element automatically fetches the number of messages that contain the search query `@codicent #log` and displays the count.
 
+### Custom HTML elements (experimental)
+```html
+window.Codicent.createCustomElement('send-button', `
+  <button onclick="alert('Hello!')">Hello</button>
+`);
+
+<send-button></send-button>
+```
+With the `createCustomElement` function, you can create custom HTML elements that can be used in your HTML file.
+
 ## Building
 
 Step: Obfuscate the JavaScript file

@@ -15,12 +15,15 @@
    <h1 data-codicent-type="counter" data-codicent-search="@codicent #log"></h1>
    <h1 data-codicent-type="counter" data-codicent-search="@codicent #log" data-codicent-after="2024-03-15 22:00"></h1>
    </h1>
+   <send-button />
    <!-- <button id="getDataButton">Get data messages</button> -->
    <script>
       window.onload = () => {
          window.Codicent.token = "ENTER_CODICENT_API_TOKEN_HERE";
          window.Codicent.init();
+         window.Codicent.createCustomElement('send-button', `<button onclick="alert('Hello!')">Hello</button>`);
       };
+
 
       document.getElementById("testButton").onclick = function () {
          console.log("Posting test message...");

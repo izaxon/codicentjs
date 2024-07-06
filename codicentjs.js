@@ -249,7 +249,42 @@
           log(`Error getting chat reply: ${error.message}`);
           throw error;
         }
-      }
+      },
+
+      createCustomElement: (elementName, template) => {
+        class CustomElement extends HTMLElement {
+          constructor() {
+            super();
+            this.attachShadow({ mode: 'open' });
+          }
+
+          static get observedAttributes() {
+            const regex = /{{(.*?)}}/g;
+            const matches = [...template.matchAll(regex)];
+            return matches.map(match => match[1]);
+          }
+
+          attributeChangedCallback(name, oldValue, newValue) {
+            this.render();
+          }
+
+          connectedCallback() {
+            this.render();
+          }
+
+          render() {
+            let renderedTemplate = template;
+            CustomElement.observedAttributes.forEach(attr => {
+              const value = this.getAttribute(attr) || '';
+              const regex = new RegExp(`{{${attr}}}`, 'g');
+              renderedTemplate = renderedTemplate.replace(regex, value);
+            });
+            this.shadowRoot.innerHTML = renderedTemplate;
+          }
+        }
+
+        customElements.define(elementName, CustomElement);
+      },
     };
 
     const isData = (message) => {
