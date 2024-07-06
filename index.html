@@ -15,13 +15,22 @@
    <h1 data-codicent-type="counter" data-codicent-search="@codicent #log"></h1>
    <h1 data-codicent-type="counter" data-codicent-search="@codicent #log" data-codicent-after="2024-03-15 22:00"></h1>
    </h1>
-   <send-button />
+   <send-button></send-button>
+   <my-list data='[{"name": "Item 1", "icon": "book"}, {"name": "Item 2", "icon": "boat"}]'></my-list>
    <!-- <button id="getDataButton">Get data messages</button> -->
    <script>
       window.onload = () => {
          window.Codicent.token = "ENTER_CODICENT_API_TOKEN_HERE";
          window.Codicent.init();
          window.Codicent.createCustomElement('send-button', `<button onclick="alert('Hello!')">Hello</button>`);
+         window.Codicent.createCustomElement('my-list-item', `<li>{{name}}: <b>{{icon}}</b></li>`);
+         window.Codicent.createCustomElement('my-list', `
+  <ul>
+    {{#each}}
+      <my-list-item name="{{name}}" icon="{{icon}}"></my-list-item>
+    {{/each}}
+  </ul>
+`);
       };
 
 

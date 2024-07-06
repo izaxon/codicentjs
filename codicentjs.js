@@ -251,7 +251,7 @@
         }
       },
 
-      createCustomElement: (elementName, template) => {
+      createCustomElement: createCustomElement = (elementName, template) => {
         class CustomElement extends HTMLElement {
           constructor() {
             super();
@@ -274,11 +274,31 @@
 
           render() {
             let renderedTemplate = template;
+
+            // Handle collections first
+            const dataAttr = this.getAttribute('data');
+            if (dataAttr) {
+              const data = JSON.parse(dataAttr);
+              const collectionRegex = /{{#each}}([\s\S]*?){{\/each}}/g;
+              renderedTemplate = renderedTemplate.replace(collectionRegex, (match, p1) => {
+                return data.map(item => {
+                  let itemTemplate = p1;
+                  Object.keys(item).forEach(key => {
+                    const itemRegex = new RegExp(`{{${key}}}`, 'g');
+                    itemTemplate = itemTemplate.replace(itemRegex, item[key]);
+                  });
+                  return itemTemplate;
+                }).join('');
+              });
+            }
+
+            // Handle individual attributes
             CustomElement.observedAttributes.forEach(attr => {
               const value = this.getAttribute(attr) || '';
               const regex = new RegExp(`{{${attr}}}`, 'g');
               renderedTemplate = renderedTemplate.replace(regex, value);
             });
+
             this.shadowRoot.innerHTML = renderedTemplate;
           }
         }
