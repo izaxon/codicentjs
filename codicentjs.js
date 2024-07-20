@@ -232,13 +232,18 @@
       },
       getChatReply: async (message) => {
         const { token, log, baseUrl } = window.Codicent;
+        const controller = new AbortController();
+        const signal = controller.signal;
         try {
+          const timeoutId = setTimeout(() => controller.abort(), 5 * 60000); // 5 minutes timeout
           const response = await fetch(`${baseUrl}api/GetChatReply2?message=${encodeURIComponent(message)}`,
             {
               method: "GET",
               headers: [["Authorization", `Bearer ${token}`]],
+              signal,
             }
           );
+          clearTimeout(timeoutId);
           if (!response.ok) {
             throw new Error(`HTTP error: ${response.status}`);
           }
