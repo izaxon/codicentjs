@@ -30,8 +30,8 @@ To upload a file, call the `upload` function and pass a `FormData` object. This 
 
 ```javascript
 const formData = new FormData();
-formData.append('file', yourFile);
-const id = await window.Codicent.upload(formData);
+formData.append('file', file);
+const id = await window.Codicent.upload(formData, file.name);
 ```
 
 ## Post a Message
@@ -110,6 +110,16 @@ The log button automatically attaches to the click handler of the button and sen
 <div data-codicent-type="counter" data-codicent-search="@codicent #log"></div>
 ```
 The counter element automatically fetches the number of messages that contain the search query `@codicent #log` and displays the count.
+
+### Custom HTML elements (experimental)
+```html
+window.Codicent.createCustomElement('send-button', `
+  <button onclick="alert('Hello!')">Hello</button>
+`);
+
+<send-button></send-button>
+```
+With the `createCustomElement` function, you can create custom HTML elements that can be used in your HTML file.
 
 ## Building
 

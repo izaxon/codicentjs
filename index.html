@@ -10,16 +10,29 @@
    <button id="testButton">Post test message</button>
    <button id="getButton">Get messages</button>
    <button id="testChat">AI chat</button>
+   <input type="file" id="testUpload">Upload file</input>
    <button data-codicent-type="send" data-codicent-message="@codicent #log Hello, world!">Send message</button>
    <h1 data-codicent-type="counter" data-codicent-search="@codicent #log"></h1>
    <h1 data-codicent-type="counter" data-codicent-search="@codicent #log" data-codicent-after="2024-03-15 22:00"></h1>
    </h1>
+   <send-button></send-button>
+   <my-list data='[{"name": "Item 1", "icon": "book"}, {"name": "Item 2", "icon": "boat"}]'></my-list>
    <!-- <button id="getDataButton">Get data messages</button> -->
    <script>
       window.onload = () => {
          window.Codicent.token = "ENTER_CODICENT_API_TOKEN_HERE";
          window.Codicent.init();
+         window.Codicent.createCustomElement('send-button', `<button onclick="alert('Hello!')">Hello</button>`);
+         window.Codicent.createCustomElement('my-list-item', `<li>{{name}}: <b>{{icon}}</b></li>`);
+         window.Codicent.createCustomElement('my-list', `
+  <ul>
+    {{#each}}
+      <my-list-item name="{{name}}" icon="{{icon}}"></my-list-item>
+    {{/each}}
+  </ul>
+`);
       };
+
 
       document.getElementById("testButton").onclick = function () {
          console.log("Posting test message...");
@@ -45,6 +58,20 @@
 
       document.getElementById("testChat").onclick = function () {
          window.Codicent.getChatReply("Write a short text about Codicent!")
+            .then(response => {
+               console.log("RESPONSE", response);
+            })
+            .catch(error => {
+               console.error("ERROR", error);
+            });
+      };
+
+      document.getElementById("testUpload").onchange = function (e) {
+         console.log("Uploading file...");
+         const file = e.target.files[0];
+         const formData = new FormData();
+         formData.append('file', file);
+         window.Codicent.upload(formData, file.name)
             .then(response => {
                console.log("RESPONSE", response);
             })

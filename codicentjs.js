@@ -57,10 +57,10 @@
         refreshUI();
       },
       refresh: () => refreshUI(),
-      upload: async (formData) => {
+      upload: async (formData, filename) => {
         const { log, baseUrl, token } = window.Codicent;
         try {
-          const response = await fetch(`${baseUrl}app/UploadFile`, {
+          const response = await fetch(`${baseUrl}app/UploadFile?filename=${encodeURIComponent(filename)}`, {
             method: 'POST',
             headers: {
               "Authorization": `Bearer ${token}`,
@@ -254,7 +254,62 @@
           log(`Error getting chat reply: ${error.message}`);
           throw error;
         }
-      }
+      },
+
+      createCustomElement: createCustomElement = (elementName, template) => {
+        class CustomElement extends HTMLElement {
+          constructor() {
+            super();
+            this.attachShadow({ mode: 'open' });
+          }
+
+          static get observedAttributes() {
+            const regex = /{{(.*?)}}/g;
+            const matches = [...template.matchAll(regex)];
+            return matches.map(match => match[1]);
+          }
+
+          attributeChangedCallback(name, oldValue, newValue) {
+            this.render();
+          }
+
+          connectedCallback() {
+            this.render();
+          }
+
+          render() {
+            let renderedTemplate = template;
+
+            // Handle collections first
+            const dataAttr = this.getAttribute('data');
+            if (dataAttr) {
+              const data = JSON.parse(dataAttr);
+              const collectionRegex = /{{#each}}([\s\S]*?){{\/each}}/g;
+              renderedTemplate = renderedTemplate.replace(collectionRegex, (match, p1) => {
+                return data.map(item => {
+                  let itemTemplate = p1;
+                  Object.keys(item).forEach(key => {
+                    const itemRegex = new RegExp(`{{${key}}}`, 'g');
+                    itemTemplate = itemTemplate.replace(itemRegex, item[key]);
+                  });
+                  return itemTemplate;
+                }).join('');
+              });
+            }
+
+            // Handle individual attributes
+            CustomElement.observedAttributes.forEach(attr => {
+              const value = this.getAttribute(attr) || '';
+              const regex = new RegExp(`{{${attr}}}`, 'g');
+              renderedTemplate = renderedTemplate.replace(regex, value);
+            });
+
+            this.shadowRoot.innerHTML = renderedTemplate;
+          }
+        }
+
+        customElements.define(elementName, CustomElement);
+      },
     };
 
     const isData = (message) => {
