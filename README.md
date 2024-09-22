@@ -18,8 +18,7 @@ To initialize the library, you need to call the `init` function and pass an obje
 ```javascript
 window.onload = () => {
   window.Codicent.init({
-    token: 'YOUR_TOKEN',
-    signalRHost: 'YOUR_SIGNALR_HOST_URL',
+    token: 'YOUR_TOKEN'
   });
 }
 ```
