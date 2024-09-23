@@ -206,6 +206,35 @@
           throw error;
         }
       },
+      getMessages3: async (props = {}) => {
+        const { token, log, baseUrl } = window.Codicent;
+        const { start, length, search, afterTimestamp, beforeTimestamp } = { ...{ start: 0, length: 10, search: "" }, ...props };
+        try {
+          const response = await fetch(`${baseUrl}app/GetChatMessages?start=${start}&length=${length}&search=${encodeURIComponent(search)}${afterTimestamp ? `&afterTimestamp=${afterTimestamp.toISOString()}` : ""}${beforeTimestamp ? `&beforeTimestamp=${beforeTimestamp.toISOString()}` : ""}${props.skipContent !== true ? "&includeContent=true" : ""}`,
+            {
+              method: "GET",
+              headers: [
+                ["Content-Type", "application/json; charset=utf-8"],
+                ["Authorization", `Bearer ${token}`],
+              ],
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+          }
+
+          let messages = await response.json();
+          messages.forEach((m) => {
+            m.createdAt = new Date(Date.parse(m.createdAt));
+          });
+
+          return messages;
+        } catch (error) {
+          log(`Error getting messages: ${error.message}`);
+          throw error;
+        }
+      },
       getDataMessages: async ({ codicent, tags, search }) => {
         const { token, log, baseUrl } = window.Codicent;
         try {
