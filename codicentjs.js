@@ -143,8 +143,6 @@
           throw error;
         }
       },
-      getMessages2: getMessages,
-      getMessages3: getMessages,
       getDataMessages: async ({ codicent, tags, search }) => {
         const { token, log, baseUrl } = window.Codicent;
         try {
