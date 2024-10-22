@@ -114,8 +114,6 @@
           throw error;
         }
       },
-      getMessages3: getMessages,
-      getMessages2: getMessages,
       getMessages: async (props = {}) => {
         const { token, log, baseUrl } = window.Codicent;
         const { start, length, search, afterTimestamp, beforeTimestamp } = { ...{ start: 0, length: 10, search: "" }, ...props };
@@ -145,6 +143,8 @@
           throw error;
         }
       },
+      getMessages2: getMessages,
+      getMessages3: getMessages,
       getDataMessages: async ({ codicent, tags, search }) => {
         const { token, log, baseUrl } = window.Codicent;
         try {
