@@ -78,10 +78,10 @@
           throw error;
         }
       },
-      getFileInfo: async (id) => {
+      getFileInfo: async (fileId) => {
         const { log, baseUrl, token } = window.Codicent;
         try {
-          const response = await fetch(`${baseUrl}app/GetFileInfo?fileId=${id}`, {
+          const response = await fetch(`${baseUrl}app/GetFileInfo?fileId=${fileId}`, {
             method: 'GET',
             headers: {
               "Authorization": `Bearer ${token}`,
@@ -91,7 +91,7 @@
             throw new Error(`HTTP error! status: ${response.status}`);
           }
           const fileInfo = await response.json();
-          log(`File info retrieved successfully. ID: ${id}`);
+          log(`File info retrieved successfully. ID: ${fileId}`);
           const { id, filename, createdAt, contentType } = fileInfo;
           return { id, filename, createdAt: new Date(createdAt), contentType };
         } catch (error) {
