@@ -232,8 +232,7 @@
           }
 
           const reply = await response.json();
-          const { content } = reply;
-          return content;
+          return { id: reply.id, content };
         } catch (error) {
           log(`Error getting chat reply: ${error.message}`);
           throw error;
