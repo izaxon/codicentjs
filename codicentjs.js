@@ -213,6 +213,31 @@
           throw error;
         }
       },
+      getChatReply2: async ({ message, codicent, messageId }) => {
+        const { token, log, baseUrl } = window.Codicent;
+        const controller = new AbortController();
+        const signal = controller.signal;
+        try {
+          const timeoutId = setTimeout(() => controller.abort(), 5 * 60000); // 5 minutes timeout
+          const response = await fetch(`${baseUrl}app/GetAi2ChatReply?message=${encodeURIComponent(message)}&project=${codicent}${messageId ? `&messageId=${messageId}` : ""}`,
+            {
+              method: "GET",
+              headers: [["Authorization", `Bearer ${token}`]],
+              signal,
+            }
+          );
+          clearTimeout(timeoutId);
+          if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+          }
+
+          const reply = await response.text();
+          return reply;
+        } catch (error) {
+          log(`Error getting chat reply: ${error.message}`);
+          throw error;
+        }
+      },
 
       createCustomElement: createCustomElement = (elementName, template) => {
         class CustomElement extends HTMLElement {
