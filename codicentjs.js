@@ -231,8 +231,9 @@
             throw new Error(`HTTP error: ${response.status}`);
           }
 
-          const reply = await response.text();
-          return reply;
+          const reply = await response.json();
+          const { content } = reply;
+          return content;
         } catch (error) {
           log(`Error getting chat reply: ${error.message}`);
           throw error;
