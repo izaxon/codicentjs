@@ -324,7 +324,7 @@
     };
 
     const getMentions = (text) => {
-      const matches = getContentWithoutData(text).match(/(?<=^|\s|\n)@[a-zA-Z0-9_-]+(?=\s|$|\n)/g);
+      const matches = getContentWithoutData(text).match(/(\s|^)@[a-zA-Z0-9_-]+/g);
       if (!matches) {
         return [];
       }
@@ -336,7 +336,7 @@
         return [];
       }
 
-      const matches = getContentWithoutData(text).match(/(?<=^|\s|\n)#[a-zA-Z0-9_-]+(?=\s|$|\n)/g);
+      const matches = getContentWithoutData(text).match(/(\s|^)#[a-zA-Z0-9_-]+/g);
       if (!matches) {
         return [];
       }
