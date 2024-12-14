@@ -29,7 +29,7 @@
           .withUrl(signalRHost, {
             accessTokenFactory: () => token,
           })
-          .configureLogging(signalR.LogLevel.Error)
+          .configureLogging(signalR.LogLevel.None)
           .withAutomaticReconnect()
           .build();
 
