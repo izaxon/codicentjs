@@ -239,6 +239,34 @@
         }
       },
 
+      getChatReply3: async ({ message, codicent, messageId }) => {
+        const { token, log, baseUrl } = window.Codicent;
+        const controller = new AbortController();
+        const signal = controller.signal;
+        try {
+          const timeoutId = setTimeout(() => controller.abort(), 5 * 60000); // 5 minutes timeout
+          const response = await fetch(`${baseUrl}app/GetAi2ChatReply`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json; charset=utf-8",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ message, project: codicent, messageId }),
+            signal,
+          });
+          clearTimeout(timeoutId);
+          if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+          }
+
+          const reply = await response.json();
+          return { id: reply.id, content: reply.content.substring(codicent.length + 2) };
+        } catch (error) {
+          log(`Error getting chat reply: ${error.message}`);
+          throw error;
+        }
+      },
+
       createCustomElement: createCustomElement = (elementName, template) => {
         class CustomElement extends HTMLElement {
           constructor() {
