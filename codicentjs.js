@@ -37,21 +37,31 @@
         let connectionErrorLogged = false;
         let connectionAttempts = 0;
         const maxConnectionAttempts = props.maxConnectionAttempts || 5;
-        let baseRetryDelay = 5000; // Starting with 5 seconds
+        let baseRetryDelay = 10000; // Starting with 10 seconds instead of 5
+        let reconnectTimeout = null;
+        let isConnecting = false;
 
         const startSignalR = async () => {
+          // Don't try to connect if another connection attempt is in progress
+          if (isConnecting) {
+            log("Connection attempt already in progress, skipping redundant attempt");
+            return;
+          }
+
           if (connectionAttempts >= maxConnectionAttempts) {
             log(`Maximum connection attempts (${maxConnectionAttempts}) reached. Stopping reconnection attempts.`);
             return;
           }
 
           try {
+            isConnecting = true;
             await connection.start();
-            // Reset the flag and connection attempts when connection succeeds
+            // Reset flags and connection attempts when connection succeeds
             connectionErrorLogged = false;
             connectionAttempts = 0;
-            baseRetryDelay = 5000; // Reset delay on successful connection
+            baseRetryDelay = 10000; // Reset delay on successful connection
             log("SignalR connection established successfully.");
+            isConnecting = false;
           } catch (err) {
             connectionAttempts++;
 
@@ -72,12 +82,26 @@
               connectionErrorLogged = true;
             }
 
+            // Clear any existing timeout to avoid multiple reconnection attempts
+            if (reconnectTimeout) {
+              clearTimeout(reconnectTimeout);
+            }
+
             // Exponential backoff with jitter
-            const retryDelay = baseRetryDelay * Math.pow(1.5, Math.min(connectionAttempts - 1, 8)) + Math.random() * 2000;
-            baseRetryDelay = Math.min(retryDelay, 60000); // Cap at 1 minute
+            // More aggressive growth factor (2 instead of 1.5) and higher starting point
+            const exponentialDelay = baseRetryDelay * Math.pow(2, Math.min(connectionAttempts - 1, 6));
+            const jitter = Math.random() * 0.3 * exponentialDelay; // 0-30% jitter
+            const retryDelay = exponentialDelay + jitter;
+
+            // Cap at 2 minutes (120000ms)
+            const cappedDelay = Math.min(retryDelay, 120000);
+
+            log(`Reconnecting in ${Math.round(cappedDelay / 1000)} seconds (attempt ${connectionAttempts}/${maxConnectionAttempts})`);
+
+            isConnecting = false;
 
             if (connectionAttempts < maxConnectionAttempts) {
-              setTimeout(startSignalR, baseRetryDelay);
+              reconnectTimeout = setTimeout(startSignalR, cappedDelay);
             }
           }
         };
@@ -86,7 +110,14 @@
           // Reset connectionErrorLogged so we log the first error after a disconnect
           connectionErrorLogged = false;
           log("SignalR connection closed. Attempting to reconnect...");
-          await startSignalR();
+
+          // Clear any existing reconnection timeout
+          if (reconnectTimeout) {
+            clearTimeout(reconnectTimeout);
+          }
+
+          // Add a small delay before first reconnection attempt
+          reconnectTimeout = setTimeout(startSignalR, 1000);
         });
 
         startSignalR();
