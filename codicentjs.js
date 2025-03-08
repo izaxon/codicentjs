@@ -34,11 +34,19 @@
           .build();
 
         const { connection } = window.Codicent.state;
+        let connectionErrorLogged = false;
+
         const startSignalR = async () => {
           try {
             await connection.start();
+            // Reset the flag when connection succeeds
+            connectionErrorLogged = false;
           } catch (err) {
-            log(err);
+            // Only log the error once
+            if (!connectionErrorLogged) {
+              log(`SignalR connection error: ${err}. Further attempts will be silent.`);
+              connectionErrorLogged = true;
+            }
             setTimeout(startSignalR, 15000);
           }
         };
