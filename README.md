@@ -14,11 +14,13 @@ To initialize the library, you need to call the `init` function and pass an obje
 
 - `token`: Your Codicent API token. This is required.
 - `signalRHost`: The URL of your SignalR Host. This is optional. 
+- `maxConnectionAttempts`: Maximum number of SignalR connection attempts before giving up. Default is 5.
 
 ```javascript
 window.onload = () => {
   window.Codicent.init({
-    token: 'YOUR_TOKEN'
+    token: 'YOUR_TOKEN',
+    maxConnectionAttempts: 3 // Optional, default is 5
   });
 }
 ```
@@ -85,6 +87,31 @@ To handle logging, you can define a `log` function. This function will be called
 window.Codicent.log = function(message) {
   console.log('Codicent log:', message);
 };
+```
+
+## SignalR Connection Handling
+
+The library implements an advanced connection strategy for SignalR with:
+
+- Exponential backoff between retry attempts
+- Maximum retry limit (configurable via `maxConnectionAttempts`)
+- CORS error detection and specialized logging
+- Automatic reconnection after disconnection
+
+When working in development environments where CORS might be an issue, you can:
+1. Set a lower value for `maxConnectionAttempts` to avoid excessive error messages
+2. Implement a custom log function to filter out connection errors
+
+```javascript
+window.Codicent.init({
+  token: 'YOUR_TOKEN',
+  maxConnectionAttempts: 3,
+  log: (msg) => {
+    if (!msg.includes('SignalR connection')) {
+      console.log(msg); // Only log non-connection messages
+    }
+  }
+});
 ```
 
 ## Codicent AI chat

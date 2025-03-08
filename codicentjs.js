@@ -35,23 +35,57 @@
 
         const { connection } = window.Codicent.state;
         let connectionErrorLogged = false;
+        let connectionAttempts = 0;
+        const maxConnectionAttempts = props.maxConnectionAttempts || 5;
+        let baseRetryDelay = 5000; // Starting with 5 seconds
 
         const startSignalR = async () => {
+          if (connectionAttempts >= maxConnectionAttempts) {
+            log(`Maximum connection attempts (${maxConnectionAttempts}) reached. Stopping reconnection attempts.`);
+            return;
+          }
+
           try {
             await connection.start();
-            // Reset the flag when connection succeeds
+            // Reset the flag and connection attempts when connection succeeds
             connectionErrorLogged = false;
+            connectionAttempts = 0;
+            baseRetryDelay = 5000; // Reset delay on successful connection
+            log("SignalR connection established successfully.");
           } catch (err) {
-            // Only log the error once
+            connectionAttempts++;
+
+            // Check specifically for CORS errors
+            const isCorsError = err.message && (
+              err.message.includes("CORS") ||
+              err.message.includes("Failed to fetch") ||
+              err.message.includes("NetworkError")
+            );
+
+            // Only log the error once or when the error type changes
             if (!connectionErrorLogged) {
-              log(`SignalR connection error: ${err}. Further attempts will be silent.`);
+              if (isCorsError) {
+                log(`SignalR connection CORS error detected. This may be due to cross-origin restrictions. Attempts: ${connectionAttempts}/${maxConnectionAttempts}`);
+              } else {
+                log(`SignalR connection error: ${err}. Attempts: ${connectionAttempts}/${maxConnectionAttempts}`);
+              }
               connectionErrorLogged = true;
             }
-            setTimeout(startSignalR, 15000);
+
+            // Exponential backoff with jitter
+            const retryDelay = baseRetryDelay * Math.pow(1.5, Math.min(connectionAttempts - 1, 8)) + Math.random() * 2000;
+            baseRetryDelay = Math.min(retryDelay, 60000); // Cap at 1 minute
+
+            if (connectionAttempts < maxConnectionAttempts) {
+              setTimeout(startSignalR, baseRetryDelay);
+            }
           }
         };
 
         connection.onclose(async () => {
+          // Reset connectionErrorLogged so we log the first error after a disconnect
+          connectionErrorLogged = false;
+          log("SignalR connection closed. Attempting to reconnect...");
           await startSignalR();
         });
 
