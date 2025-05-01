@@ -1,3 +1,55 @@
+## Data Message CRUD API
+
+Codicent provides a simple CRUD API for storing and managing structured data messages, using a single tag as a table name. These methods are available on `window.Codicent.data`:
+
+### Create a Data Message
+
+```javascript
+const id = await window.Codicent.data.create({
+  codicent: 'mycodicent',
+  tag: 'mytable', // single tag (table name)
+  data: { foo: 'bar', count: 42 }
+});
+```
+
+### Read Data Messages
+
+```javascript
+const messages = await window.Codicent.data.read({
+  codicent: 'mycodicent',
+  tag: 'mytable',
+  search: 'optional search string' // optional
+});
+```
+
+### Read a Single Data Message by ID
+
+```javascript
+const message = await window.Codicent.data.readOne('MESSAGE_ID');
+```
+
+### Update a Data Message
+
+```javascript
+const newId = await window.Codicent.data.update({
+  id: 'MESSAGE_ID', // id of the message to update
+  data: { foo: 'new', count: 99 }
+});
+```
+
+### Delete a Data Message
+
+```javascript
+await window.Codicent.data.delete({
+  id: 'MESSAGE_ID' // id of the message to delete
+});
+```
+
+**Notes:**
+- The `tag` parameter is always a single string and acts as a table name.
+- The `data` parameter should be a plain object and will be stored as JSON.
+- For `update` and `delete`, the `id` parameter refers to the message to update or delete.
+- The API automatically keeps the tag from the original message when updating.
 # Codicent JavaScript Library Documentation
 
 ## Including the Library in Your HTML
