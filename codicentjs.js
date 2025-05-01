@@ -340,6 +340,78 @@
         }
       },
 
+      /**
+       * CRUD methods for data messages (create, read, update, delete)
+       */
+      data: {
+        /**
+         * Create a data message (with a single tag and JSON data)
+         * @param {Object} params
+         * @param {string} params.codicent - Project/codicent name
+         * @param {string} params.tag - Single tag (table name)
+         * @param {Object} params.data - Data object to store
+         * @returns {Promise<string>} - ID of created message
+         */
+        create: async ({ codicent, tag, data }) => {
+          const tagString = `#${tag}`;
+          const message = `${tagString} ${JSON.stringify(data)}`;
+          return window.Codicent.postMessage({ message });
+        },
+
+        /**
+         * Read/list data messages (uses getDataMessages)
+         * @param {Object} params
+         * @param {string} params.codicent - Project/codicent name
+         * @param {string} params.tag - Single tag (table name)
+         * @param {string} [params.search] - Search string
+         * @returns {Promise<Array>} - Array of data messages
+         */
+        read: async ({ codicent, tag, search = undefined }) => {
+          // If search is undefined, do not pass it to getDataMessages
+          const params = { codicent, tags: [tag], search };
+          return window.Codicent.getDataMessages(params);
+        },
+
+        /**
+         * Read a single data message by id (uses getMessages)
+         * @param {string} id - Message ID
+         * @returns {Promise<Object|null>} - Message or null
+         */
+        readOne: async (id) => {
+          const messages = await window.Codicent.getMessages({ search: id, length: 1 });
+          return messages.length ? messages[0] : null;
+        },
+
+        /**
+         * Update a data message (post new message with parentId ref to old, keeps tag from old message)
+         * @param {Object} params
+         * @param {string} params.id - ID of message to update
+         * @param {Object} params.data - New data object
+         * @returns {Promise<string>} - ID of new message
+         */
+        update: async ({ id, data }) => {
+          // Fetch the old message to get its tag
+          const oldMessages = await window.Codicent.getMessages({ search: id, length: 1 });
+          if (!oldMessages.length) throw new Error("Old message not found");
+          const oldMsg = oldMessages[0];
+          // Extract the first tag from the message content
+          const tagMatch = oldMsg.content.match(/#([a-zA-Z0-9_-]+)/);
+          const tagString = tagMatch ? tagMatch[0] : "#data";
+          const message = `${tagString} ${JSON.stringify(data)}`;
+          return window.Codicent.postMessage({ message, parentId: id });
+        },
+
+        /**
+         * Delete a data message (post #hidden with parentId ref to old)
+         * @param {Object} params
+         * @param {string} params.id - ID of message to delete
+         * @returns {Promise<string>} - ID of delete message
+         */
+        delete: async ({ id }) => {
+          return window.Codicent.postMessage({ message: "#hidden", parentId: id });
+        }
+      },
+
       createCustomElement: createCustomElement = (elementName, template) => {
         class CustomElement extends HTMLElement {
           constructor() {
