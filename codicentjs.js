@@ -353,8 +353,10 @@
          * @returns {Promise<string>} - ID of created message
          */
         create: async ({ codicent, tag, data }) => {
+          if (!codicent) throw new Error('codicent is required');
           const tagString = `#${tag}`;
-          const message = `${tagString} ${JSON.stringify(data)}`;
+          const mention = `@${codicent}`;
+          const message = `${mention} ${tagString} ${JSON.stringify(data)}`;
           return window.Codicent.postMessage({ message });
         },
 
@@ -389,15 +391,18 @@
          * @param {Object} params.data - New data object
          * @returns {Promise<string>} - ID of new message
          */
-        update: async ({ id, data }) => {
+        update: async ({ id, data, codicent }) => {
+          if (!codicent) throw new Error('codicent is required');
           // Fetch the old message to get its tag
           const oldMessages = await window.Codicent.getMessages({ search: id, length: 1 });
           if (!oldMessages.length) throw new Error("Old message not found");
           const oldMsg = oldMessages[0];
-          // Extract the first tag from the message content
-          const tagMatch = oldMsg.content.match(/#([a-zA-Z0-9_-]+)/);
-          const tagString = tagMatch ? tagMatch[0] : "#data";
-          const message = `${tagString} ${JSON.stringify(data)}`;
+          // Extract all tags from the message content
+          const tagMatch = oldMsg.content.match(/#[a-zA-Z0-9_-]+/g) || [];
+          if (!tagMatch.length) throw new Error("No tags found in old message");
+          const tagString = tagMatch.join(" ").trim();
+          const mention = `@${codicent}`;
+          const message = `${mention} ${tagString} ${JSON.stringify(data)}`;
           return window.Codicent.postMessage({ message, parentId: id });
         },
 
@@ -407,8 +412,8 @@
          * @param {string} params.id - ID of message to delete
          * @returns {Promise<string>} - ID of delete message
          */
-        delete: async ({ id }) => {
-          return window.Codicent.postMessage({ message: "#hidden", parentId: id });
+        delete: async ({ id, codicent }) => {
+          return window.Codicent.postMessage({ message: `@${codicent} #hidden`, parentId: id });
         }
       },
 
