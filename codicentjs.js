@@ -25,11 +25,31 @@
           throw new Error('SignalR Host is required to initialize Codicent');
         }
 
+        // Allow transport override for debugging
+        const transport = props.signalRTransport; // e.g. "WebSockets", "LongPolling", "ServerSentEvents"
+
+        // Diagnostics: log current location, host, token, transport
+        log("Codicent SignalR diagnostics:");
+        log("  Current page URL:", window.location.href);
+        log("  SignalR Host:", signalRHost);
+        log("  Negotiation endpoint:", signalRHost + "/negotiate?negotiateVersion=1");
+        log("  Token (first 40 chars):", token ? token.substring(0, 40) + "..." : "(none)");
+        log("  Transport override:", transport || "(default)");
+        log("  User agent:", navigator.userAgent);
+        if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+          log("WARNING: You are running on localhost. Azure SignalR will reject negotiation unless localhost is allowed in CORS and you provide a valid JWT access token.");
+        }
+        // Warn if token is not a JWT (Azure SignalR requires JWT)
+        if (typeof token === "string" && token.split(".").length !== 3) {
+          log("WARNING: The provided token does not look like a JWT. Azure SignalR requires a valid JWT access token.");
+        }
+
         window.Codicent.state.connection = new signalR.HubConnectionBuilder()
           .withUrl(signalRHost, {
             accessTokenFactory: () => token,
+            ...(transport ? { transport: signalR.HttpTransportType[transport] } : {}),
           })
-          .configureLogging(signalR.LogLevel.None)
+          .configureLogging(signalR.LogLevel.Debug)
           .withAutomaticReconnect()
           .build();
 
@@ -40,6 +60,17 @@
         let baseRetryDelay = 10000; // Starting with 10 seconds instead of 5
         let reconnectTimeout = null;
         let isConnecting = false;
+
+        // Add detailed connection event logging
+        connection.onreconnecting((err) => {
+          log("SignalR reconnecting...", err);
+        });
+        connection.onreconnected((connectionId) => {
+          log("SignalR reconnected. ConnectionId:", connectionId);
+        });
+        connection.onclose((err) => {
+          log("SignalR connection closed.", err);
+        });
 
         const startSignalR = async () => {
           // Don't try to connect if another connection attempt is in progress
@@ -55,6 +86,7 @@
 
           try {
             isConnecting = true;
+            log("Attempting to start SignalR connection...");
             await connection.start();
             // Reset flags and connection attempts when connection succeeds
             connectionErrorLogged = false;
@@ -64,6 +96,34 @@
             isConnecting = false;
           } catch (err) {
             connectionAttempts++;
+
+            // Log the full error object for diagnostics
+            log("SignalR connection error object:", err);
+            if (err && err.stack) {
+              log("SignalR connection error stack:", err.stack);
+            }
+            // Log extra error details if present
+            if (err && typeof err === "object") {
+              if (err.response) log("SignalR error response:", err.response);
+              if (err.statusCode) log("SignalR error statusCode:", err.statusCode);
+              if (err.data) log("SignalR error data:", err.data);
+              if (err.body) log("SignalR error body:", err.body);
+              // Log XMLHttpRequest if present
+              if (err.xhr) {
+                log("SignalR error xhr:", err.xhr);
+                if (typeof err.xhr.status !== "undefined") log("SignalR xhr.status:", err.xhr.status);
+                if (typeof err.xhr.statusText !== "undefined") log("SignalR xhr.statusText:", err.xhr.statusText);
+                if (typeof err.xhr.responseText !== "undefined") log("SignalR xhr.responseText:", err.xhr.responseText);
+              }
+              // Try to log the error as JSON
+              try {
+                log("SignalR error (JSON):", JSON.stringify(err));
+              } catch { }
+              // If statusCode is 0, log a hint
+              if (err.statusCode === 0) {
+                log("HINT: statusCode 0 usually means a network, CORS, or DNS error. Check your browser network tab for failed requests and verify CORS settings on your Azure SignalR endpoint.");
+              }
+            }
 
             // Check specifically for CORS errors
             const isCorsError = err.message && (
@@ -77,7 +137,7 @@
               if (isCorsError) {
                 log(`SignalR connection CORS error detected. This may be due to cross-origin restrictions. Attempts: ${connectionAttempts}/${maxConnectionAttempts}`);
               } else {
-                log(`SignalR connection error: ${err}. Attempts: ${connectionAttempts}/${maxConnectionAttempts}`);
+                log(`SignalR connection error: ${err && err.message ? err.message : err}. Attempts: ${connectionAttempts}/${maxConnectionAttempts}`);
               }
               connectionErrorLogged = true;
             }
@@ -106,10 +166,10 @@
           }
         };
 
-        connection.onclose(async () => {
+        connection.onclose(async (err) => {
           // Reset connectionErrorLogged so we log the first error after a disconnect
           connectionErrorLogged = false;
-          log("SignalR connection closed. Attempting to reconnect...");
+          log("SignalR connection closed. Attempting to reconnect...", err);
 
           // Clear any existing reconnection timeout
           if (reconnectTimeout) {
