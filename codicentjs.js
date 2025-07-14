@@ -7,6 +7,91 @@
   document.head.appendChild(signalRScript);
 
   const initCodicent = () => {
+    // Private function for robust fetch with retries
+    const robustFetch = async (url, options = {}, retryOptions = {}) => {
+      const {
+        maxRetries = 3,
+        baseDelay = 1000,
+        maxDelay = 10000,
+        exponentialBase = 2,
+        jitterFactor = 0.1,
+        retryOn = [408, 429, 500, 502, 503, 504],
+        timeout = 30000
+      } = retryOptions;
+
+      const { log } = window.Codicent;
+
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        let controller;
+        let timeoutId;
+
+        try {
+          // Create abort controller for timeout
+          controller = new AbortController();
+          const signal = options.signal 
+            ? AbortSignal.race([options.signal, controller.signal])
+            : controller.signal;
+
+          // Set timeout
+          timeoutId = setTimeout(() => controller.abort(), timeout);
+
+          const response = await fetch(url, {
+            ...options,
+            signal
+          });
+
+          clearTimeout(timeoutId);
+
+          // Check if response status should trigger a retry
+          if (!response.ok && retryOn.includes(response.status) && attempt < maxRetries) {
+            const delay = calculateRetryDelay(attempt, baseDelay, exponentialBase, maxDelay, jitterFactor);
+            log(`HTTP ${response.status} error, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
+            await sleep(delay);
+            continue;
+          }
+
+          return response;
+
+        } catch (error) {
+          clearTimeout(timeoutId);
+
+          // Don't retry on user abort or non-network errors unless it's the last attempt
+          if (error.name === 'AbortError' && options.signal?.aborted) {
+            throw error;
+          }
+
+          if (attempt === maxRetries) {
+            throw error;
+          }
+
+          // Check if error should trigger a retry (network errors, timeouts)
+          const shouldRetry = error.name === 'AbortError' || // timeout
+                             error.name === 'TypeError' || // network error
+                             error.name === 'NetworkError' ||
+                             error.message?.includes('fetch');
+
+          if (shouldRetry) {
+            const delay = calculateRetryDelay(attempt, baseDelay, exponentialBase, maxDelay, jitterFactor);
+            log(`Network error: ${error.message}, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
+            await sleep(delay);
+            continue;
+          }
+
+          throw error;
+        }
+      }
+    };
+
+    // Helper function to calculate retry delay with exponential backoff and jitter
+    const calculateRetryDelay = (attempt, baseDelay, exponentialBase, maxDelay, jitterFactor) => {
+      const exponentialDelay = baseDelay * Math.pow(exponentialBase, attempt);
+      const jitter = exponentialDelay * jitterFactor * (Math.random() * 2 - 1);
+      return Math.min(exponentialDelay + jitter, maxDelay);
+    };
+
+    // Helper function to sleep for a given number of milliseconds
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
     window.Codicent = {
       baseUrl: 'https://codicent.com/',
       token: null,
@@ -133,13 +218,14 @@
       upload: async (formData, filename) => {
         const { log, baseUrl, token } = window.Codicent;
         try {
-          const response = await fetch(`${baseUrl}app/UploadFile?filename=${encodeURIComponent(filename)}`, {
+          const response = await robustFetch(`${baseUrl}app/UploadFile?filename=${encodeURIComponent(filename)}`, {
             method: 'POST',
             headers: {
               "Authorization": `Bearer ${token}`,
             },
             body: formData,
-          });
+          }, { timeout: 60000 }); // Longer timeout for file uploads
+          
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
@@ -154,7 +240,7 @@
       getFileInfo: async (fileId) => {
         const { log, baseUrl, token } = window.Codicent;
         try {
-          const response = await fetch(`${baseUrl}app/GetFileInfo?fileId=${fileId}`, {
+          const response = await robustFetch(`${baseUrl}app/GetFileInfo?fileId=${fileId}`, {
             method: 'GET',
             headers: {
               "Authorization": `Bearer ${token}`,
@@ -180,7 +266,7 @@
         }
 
         try {
-          const response = await fetch(`${baseUrl}app/AddChatMessage`, {
+          const response = await robustFetch(`${baseUrl}app/AddChatMessage`, {
             method: "POST",
             headers: [
               ["Content-Type", "application/json; charset=utf-8"],
@@ -212,7 +298,7 @@
         const { token, log, baseUrl } = window.Codicent;
         const { start, length, search, afterTimestamp, beforeTimestamp } = { ...{ start: 0, length: 10, search: "" }, ...props };
         try {
-          const response = await fetch(`${baseUrl}app/GetChatMessages?start=${start}&length=${length}&search=${encodeURIComponent(search)}${afterTimestamp ? `&afterTimestamp=${afterTimestamp.toISOString()}` : ""}${beforeTimestamp ? `&beforeTimestamp=${beforeTimestamp.toISOString()}` : ""}${props.skipContent !== true ? "&includeContent=true" : ""}`,
+          const response = await robustFetch(`${baseUrl}app/GetChatMessages?start=${start}&length=${length}&search=${encodeURIComponent(search)}${afterTimestamp ? `&afterTimestamp=${afterTimestamp.toISOString()}` : ""}${beforeTimestamp ? `&beforeTimestamp=${beforeTimestamp.toISOString()}` : ""}${props.skipContent !== true ? "&includeContent=true" : ""}`,
             {
               method: "GET",
               headers: [
@@ -240,7 +326,7 @@
       getDataMessages: async ({ codicent, tags, search }) => {
         const { token, log, baseUrl } = window.Codicent;
         try {
-          const response = await fetch(`${baseUrl}app/FindDataMessages?project=${codicent}${search ? "&search=" + encodeURIComponent(search) : ""}`,
+          const response = await robustFetch(`${baseUrl}app/FindDataMessages?project=${codicent}${search ? "&search=" + encodeURIComponent(search) : ""}`,
             {
               method: "POST",
               headers: [
@@ -266,15 +352,15 @@
         const controller = new AbortController();
         const signal = controller.signal;
         try {
-          const timeoutId = setTimeout(() => controller.abort(), 5 * 60000); // 5 minutes timeout
-          const response = await fetch(`${baseUrl}api/GetChatReply2?message=${encodeURIComponent(message)}`,
+          const response = await robustFetch(`${baseUrl}api/GetChatReply2?message=${encodeURIComponent(message)}`,
             {
               method: "GET",
               headers: [["Authorization", `Bearer ${token}`]],
               signal,
-            }
+            },
+            { maxRetries: 1, timeout: 5 * 60000 } // Fewer retries for AI calls, 5 minute timeout
           );
-          clearTimeout(timeoutId);
+          
           if (!response.ok) {
             throw new Error(`HTTP error: ${response.status}`);
           }
@@ -291,15 +377,15 @@
         const controller = new AbortController();
         const signal = controller.signal;
         try {
-          const timeoutId = setTimeout(() => controller.abort(), 5 * 60000); // 5 minutes timeout
-          const response = await fetch(`${baseUrl}app/GetAi2ChatReply?message=${encodeURIComponent(message)}&project=${codicent}${messageId ? `&messageId=${messageId}` : ""}`,
+          const response = await robustFetch(`${baseUrl}app/GetAi2ChatReply?message=${encodeURIComponent(message)}&project=${codicent}${messageId ? `&messageId=${messageId}` : ""}`,
             {
               method: "GET",
               headers: [["Authorization", `Bearer ${token}`]],
               signal,
-            }
+            },
+            { maxRetries: 1, timeout: 5 * 60000 } // Fewer retries for AI calls, 5 minute timeout
           );
-          clearTimeout(timeoutId);
+          
           if (!response.ok) {
             throw new Error(`HTTP error: ${response.status}`);
           }
@@ -317,8 +403,7 @@
         const controller = new AbortController();
         const signal = controller.signal;
         try {
-          const timeoutId = setTimeout(() => controller.abort(), 5 * 60000); // 5 minutes timeout
-          const response = await fetch(`${baseUrl}app/GetAi2ChatReply`, {
+          const response = await robustFetch(`${baseUrl}app/GetAi2ChatReply`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json; charset=utf-8",
@@ -326,8 +411,8 @@
             },
             body: JSON.stringify({ message, project: codicent, messageId }),
             signal,
-          });
-          clearTimeout(timeoutId);
+          }, { maxRetries: 1, timeout: 5 * 60000 }); // Fewer retries for AI calls, 5 minute timeout
+          
           if (!response.ok) {
             throw new Error(`HTTP error: ${response.status}`);
           }

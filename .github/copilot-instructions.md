@@ -59,8 +59,10 @@ The library implements automatic reconnection with:
 
 ### Error Handling Strategy
 - All async methods throw errors rather than returning error objects
+- **Robust Fetch**: Private `robustFetch()` function with exponential backoff retry logic for all HTTP requests
 - SignalR errors are logged but don't prevent initialization
 - CORS errors get special handling due to common development issues
+- AI chat endpoints use fewer retries (1) and longer timeouts (5min) due to processing time
 
 ### UI Integration Patterns
 - **Declarative buttons**: `data-codicent-type="send"` with `data-codicent-message`
