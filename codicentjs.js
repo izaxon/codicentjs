@@ -28,9 +28,32 @@
         try {
           // Create abort controller for timeout
           controller = new AbortController();
-          const signal = options.signal 
-            ? AbortSignal.race([options.signal, controller.signal])
-            : controller.signal;
+          let signal = controller.signal;
+          
+          // Handle combining signals manually for compatibility
+          if (options.signal) {
+            // Create a new controller that will abort when either signal aborts
+            const combinedController = new AbortController();
+            signal = combinedController.signal;
+            
+            // Listen for abort on the original signal
+            if (options.signal.aborted) {
+              combinedController.abort();
+            } else {
+              options.signal.addEventListener('abort', () => {
+                combinedController.abort();
+              }, { once: true });
+            }
+            
+            // Listen for abort on the timeout controller
+            if (controller.signal.aborted) {
+              combinedController.abort();
+            } else {
+              controller.signal.addEventListener('abort', () => {
+                combinedController.abort();
+              }, { once: true });
+            }
+          }
 
           // Set timeout
           timeoutId = setTimeout(() => controller.abort(), timeout);
