@@ -381,7 +381,7 @@
               headers: [["Authorization", `Bearer ${token}`]],
               signal,
             },
-            { maxRetries: 1, timeout: 5 * 60000 } // Fewer retries for AI calls, 5 minute timeout
+            { maxRetries: 1, timeout: 90000 } // Fewer retries for AI calls, 90 second timeout
           );
           
           if (!response.ok) {
@@ -406,7 +406,7 @@
               headers: [["Authorization", `Bearer ${token}`]],
               signal,
             },
-            { maxRetries: 1, timeout: 5 * 60000 } // Fewer retries for AI calls, 5 minute timeout
+            { maxRetries: 1, timeout: 90000 } // Fewer retries for AI calls, 90 second timeout
           );
           
           if (!response.ok) {
@@ -434,7 +434,7 @@
             },
             body: JSON.stringify({ message, project: codicent, messageId }),
             signal,
-          }, { maxRetries: 1, timeout: 5 * 60000 }); // Fewer retries for AI calls, 5 minute timeout
+          }, { maxRetries: 1, timeout: 90000 }); // Fewer retries for AI calls, 90 second timeout
           
           if (!response.ok) {
             throw new Error(`HTTP error: ${response.status}`);
