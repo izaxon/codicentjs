@@ -56,8 +56,25 @@ await window.Codicent.data.delete({
 
 To include the Codicent JavaScript library in your HTML file, add the following script tag in your HTML file:
 
+### Latest Version (Always Updated)
 ```html
 <script src="https://izaxon.github.io/codicentjs/codicentjs.min.js"></script>
+```
+
+### Version-Locked (Recommended for Production)
+For production applications, it's recommended to lock to a specific version to ensure stability:
+
+```html
+<!-- Lock to version 1.0.0 -->
+<script src="https://izaxon.github.io/codicentjs/codicentjs-1.0.0.min.js"></script>
+```
+
+### Checking Library Version
+
+Once the library is loaded, you can check the version programmatically:
+
+```javascript
+console.log('Codicent Library Version:', window.Codicent.version);
 ```
 
 ## Initialization
@@ -199,16 +216,76 @@ window.Codicent.createCustomElement('send-button', `
 ```
 With the `createCustomElement` function, you can create custom HTML elements that can be used in your HTML file.
 
+## Library Versioning
+
+Starting with version 1.0.0, the Codicent JavaScript library supports version locking to ensure stability in production applications.
+
+### Available Files
+
+- **Latest version (always updated)**: `codicentjs.min.js` and `codicentjs.js`
+- **Version-locked files**: `codicentjs-1.0.0.min.js` and `codicentjs-1.0.0.js`
+
+### Version Information
+
+You can check the library version at runtime:
+
+```javascript
+console.log('Library version:', window.Codicent.version); // "1.0.0"
+```
+
+### Backward Compatibility
+
+The library maintains backward compatibility. All existing code will continue to work with new versions. Version-locked files ensure your production applications remain stable even when the library is updated.
+
+### When to Use Version Locking
+
+- ✅ **Production applications**: Always use version-locked files
+- ✅ **Critical systems**: Lock to a tested version to prevent unexpected changes
+- ⚠️ **Development/testing**: Use latest version for new features, but test before deploying
+- ❌ **Prototypes**: Latest version is fine for quick prototyping
+
 ## Building
 
-Step: Obfuscate the JavaScript file
+The library uses UglifyJS for minification and includes automated build scripts.
 
-To obfuscate the JavaScript file, you can use a tool like UglifyJS or JavaScript Obfuscator. Here, I'll show you how to use UglifyJS.
+### Prerequisites
 
 Install UglifyJS using npm:
+```bash
+npm install
+```
 
-npm install -g uglify-js
-Then, run the following command to obfuscate the codicentjs.js file:
+### Build Scripts
 
-`uglifyjs codicentjs.js --output codicentjs.min.js`
-This will generate a minified and obfuscated version of your JavaScript file, named codicentjs.min.js.
+The following npm scripts are available:
+
+```bash
+# Build both current and versioned files
+npm run build
+
+# Build only current files (codicentjs.min.js)
+npm run build:current
+
+# Build only versioned files (codicentjs-1.0.0.min.js)
+npm run build:versioned
+```
+
+### Manual Build
+
+You can also build manually using UglifyJS directly:
+
+```bash
+# Build current version
+uglifyjs codicentjs.js --output codicentjs.min.js
+
+# Build versioned file
+uglifyjs codicentjs.js --output codicentjs-1.0.0.min.js
+```
+
+### Output Files
+
+After building, you'll have:
+- `codicentjs.js` - Source file
+- `codicentjs.min.js` - Minified latest version
+- `codicentjs-1.0.0.js` - Source file (version-locked copy)
+- `codicentjs-1.0.0.min.js` - Minified version-locked file

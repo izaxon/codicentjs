@@ -32,6 +32,11 @@ declare global {
 
   interface Codicent {
     /**
+     * The version of the Codicent library
+     */
+    version: string;
+
+    /**
      * Initializes the Codicent library with the provided configuration.
      * @param config - Configuration object containing the API token and optional SignalR host.
      */
