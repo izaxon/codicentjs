@@ -7,6 +7,8 @@
 
 <body>
    <!-- Your page content -->
+   <h3>Codicent Library Test Page</h3>
+   <p>Library Version: <span id="version-display">Loading...</span></p>
    <button id="testButton">Post test message</button>
    <button id="getButton">Get messages</button>
    <button id="testChat">AI chat</button>
@@ -23,6 +25,8 @@
       window.onload = () => {
          window.Codicent.token = "ENTER_CODICENT_API_TOKEN_HERE";
          window.Codicent.init();
+         console.log('Codicent Library Version:', window.Codicent.version);
+         document.getElementById('version-display').textContent = window.Codicent.version;
          window.Codicent.createCustomElement('send-button', `<button onclick="alert('Hello!')">Hello</button>`);
          window.Codicent.createCustomElement('my-list-item', `<li>{{name}}: <b>{{icon}}</b></li>`);
          window.Codicent.createCustomElement('my-list', `

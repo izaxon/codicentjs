@@ -1,5 +1,11 @@
 {
   "version": "1.0.0",
+  "scripts": {
+    "build": "npm run build:current && npm run build:versioned",
+    "build:current": "uglifyjs codicentjs.js --output codicentjs.min.js",
+    "build:versioned": "uglifyjs codicentjs.js --output codicentjs-1.0.0.min.js",
+    "build:all": "npm run build"
+  },
   "dependencies": {
     "uglify-js": "^3.17.4"
   }
