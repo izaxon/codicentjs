@@ -144,7 +144,7 @@
       version: '1.0.0',
       baseUrl: 'https://codicent.com/',
       token: null,
-      signalRHost: "https://codicent-prod-pubsub.azurewebsites.net/hub",
+      signalRHost: "https://pubsub.codicent.com/hub",
       state: {},
       log: () => { },
       handleMessage: () => { },
