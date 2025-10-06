@@ -1,4 +1,19 @@
 (function (window) {
+  // Queue to store function calls made before SignalR loads
+  let pendingCalls = [];
+  let isSignalRLoaded = false;
+
+  // Helper function to queue or execute calls
+  const queueOrExecute = (fnName, args) => {
+    if (isSignalRLoaded) {
+      return window.Codicent[fnName](...args);
+    } else {
+      return new Promise((resolve, reject) => {
+        pendingCalls.push({ fnName, args, resolve, reject });
+      });
+    }
+  };
+
   // Initialize Codicent object immediately with version info
   window.Codicent = {
     version: '1.0.0',
@@ -8,16 +23,31 @@
     state: {},
     log: () => { },
     handleMessage: () => { },
-    // Placeholder functions that will be enhanced after SignalR loads
-    init: () => { throw new Error('Codicent is still loading. Please wait for SignalR to initialize.'); },
-    postMessage: () => { throw new Error('Codicent is still loading. Please wait for SignalR to initialize.'); },
-    getMessages: () => { throw new Error('Codicent is still loading. Please wait for SignalR to initialize.'); }
+    // Queue functions until SignalR loads
+    init: (...args) => queueOrExecute('init', args),
+    postMessage: (...args) => queueOrExecute('postMessage', args),
+    getMessages: (...args) => queueOrExecute('getMessages', args)
   };
 
   const signalRScript = document.createElement('script');
   signalRScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.0/signalr.js';
   signalRScript.onload = () => {
     initCodicent();
+    // Process queued calls
+    isSignalRLoaded = true;
+    pendingCalls.forEach(({ fnName, args, resolve, reject }) => {
+      try {
+        const result = window.Codicent[fnName](...args);
+        if (result && typeof result.then === 'function') {
+          result.then(resolve).catch(reject);
+        } else {
+          resolve(result);
+        }
+      } catch (error) {
+        reject(error);
+      }
+    });
+    pendingCalls = [];
   };
   signalRScript.onerror = () => {
     // Even if SignalR fails to load, keep the version info available
@@ -27,6 +57,12 @@
       window.Codicent = { ...window.Codicent, ...props };
       console.warn('Codicent initialized in fallback mode. Real-time features are not available.');
     };
+    // Reject all pending calls
+    isSignalRLoaded = true;
+    pendingCalls.forEach(({ reject }) => {
+      reject(new Error('SignalR failed to load. Codicent features are not available.'));
+    });
+    pendingCalls = [];
   };
   document.head.appendChild(signalRScript);
 

@@ -4,9 +4,13 @@
     "build": "npm run build:current && npm run build:versioned",
     "build:current": "uglifyjs codicentjs.js --output codicentjs.min.js",
     "build:versioned": "uglifyjs codicentjs.js --output codicentjs-1.0.0.min.js",
-    "build:all": "npm run build"
+    "build:all": "npm run build",
+    "test": "node tests/run-tests.js"
   },
   "dependencies": {
     "uglify-js": "^3.17.4"
+  },
+  "devDependencies": {
+    "jsdom": "^24.0.0"
   }
 }
