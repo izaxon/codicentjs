@@ -580,8 +580,7 @@
             const json = await statusResponse.json();
             const reply = json;
 
-            // Remove project mentions and trim
-            return reply.content.replace(`@${codicent}`, "").replace("@codicent-mini", "").trim();
+            return { id: reply.id, content: reply.content.substring(codicent.length + 2) };
           } catch (error) {
             log("Error polling AI chat status:", error);
             return undefined;
