@@ -483,86 +483,31 @@
         }
       },
 
-      getChatReply3: async ({ message, codicent, messageId, maxPollingTime = 5 * 60 * 1000, pollingInterval = 2000 }) => {
+      getChatReply3: async ({ message, codicent, messageId }) => {
         const { token, log, baseUrl } = window.Codicent;
-
-        // Step 1: Start the async AI chat request
-        const startPayload = {
-          project: codicent,
-          message,
-        };
-
-        if (messageId) {
-          startPayload.messageId = messageId;
-        }
-
-        let promptMessageId;
+        const controller = new AbortController();
+        const signal = controller.signal;
         try {
-          const startResponse = await robustFetch(`${baseUrl}app/StartAi2ChatAsync`, {
+          const response = await robustFetch(`${baseUrl}app/GetAi2ChatReply`, {
             method: "POST",
-            headers: [
-              ["Content-Type", "application/json; charset=utf-8"],
-              ["Authorization", `Bearer ${token}`],
-            ],
-            body: JSON.stringify(startPayload),
-          });
+            headers: {
+              "Content-Type": "application/json; charset=utf-8",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ message, project: codicent, messageId }),
+            signal,
+          }, { maxRetries: 1, timeout: 5 * 60000 }); // Fewer retries for AI calls, 5 minute timeout
 
-          if (!startResponse.ok) {
-            if (startResponse.status === 401) {
-              // Unauthorized, clear the token if needed
-              // token = '';
-            }
-            log(`Failed to start AI chat: ${startResponse.status}`);
-            return undefined;
+          if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
           }
 
-          const startJson = await startResponse.json();
-          promptMessageId = startJson.promptMessageId;
-
-          if (!promptMessageId) {
-            log("No promptMessageId returned from server");
-            return undefined;
-          }
+          const reply = await response.json();
+          return { id: reply.id, content: reply.content.substring(codicent.length + 2) };
         } catch (error) {
-          log("Error starting AI chat:", error);
-          return undefined;
+          log(`Error getting chat reply: ${error.message}`);
+          throw error;
         }
-
-        // Step 2: Poll for the result
-        const startTime = Date.now();
-
-        while (Date.now() - startTime < maxPollingTime) {
-          try {
-            const statusResponse = await robustFetch(`${baseUrl}app/GetAi2ChatReplyStatus?promptMessageId=${promptMessageId}`, {
-              method: "GET",
-              headers: [["Authorization", `Bearer ${token}`]],
-            });
-
-            if (statusResponse.status === 202) {
-              // Still processing, wait and try again
-              await new Promise((resolve) => setTimeout(resolve, pollingInterval));
-              continue;
-            }
-
-            if (!statusResponse.ok) {
-              log(`Error polling AI chat status: ${statusResponse.status}`);
-              return undefined;
-            }
-
-            // Got a result!
-            const json = await statusResponse.json();
-            const reply = json;
-
-            return { id: reply.id, content: reply.content.substring(codicent.length + 2) };
-          } catch (error) {
-            log("Error polling AI chat status:", error);
-            return undefined;
-          }
-        }
-
-        // Timeout reached
-        log("Polling timeout reached for AI chat");
-        return undefined;
       },
 
       getChatReply4: async ({ message, codicent, messageId, maxPollingTime = 5 * 60 * 1000, pollingInterval = 2000 }) => {
