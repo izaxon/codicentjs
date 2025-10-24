@@ -52,7 +52,7 @@
 
       document.getElementById("getButton").onclick = function () {
          console.log("Getting messages...");
-         window.Codicent.getMessages2({ length: 10, tags: ["log"], noTags: [] })
+         window.Codicent.getMessages({ length: 10, tags: ["log"], noTags: [] })
             .then(response => {
                console.log("MESSAGES", response);
             })
@@ -62,7 +62,7 @@
       };
 
       document.getElementById("testChat").onclick = function () {
-         window.Codicent.getChatReply("Write a short text about Codicent!")
+         window.Codicent.getChatReply4({ message: "Write a short text about Codicent!", codicent: "codicent" })
             .then(response => {
                console.log("RESPONSE", response);
             })

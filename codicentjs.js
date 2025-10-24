@@ -72,7 +72,7 @@
       const {
         maxRetries = 3,
         baseDelay = 1000,
-        maxDelay = 10000,
+        maxDelay = 120000,  // 2 minutes
         exponentialBase = 2,
         jitterFactor = 0.1,
         retryOn = [408, 429, 500, 502, 503, 504],
@@ -89,13 +89,13 @@
           // Create abort controller for timeout
           controller = new AbortController();
           let signal = controller.signal;
-          
+
           // Handle combining signals manually for compatibility
           if (options.signal) {
             // Create a new controller that will abort when either signal aborts
             const combinedController = new AbortController();
             signal = combinedController.signal;
-            
+
             // Listen for abort on the original signal
             if (options.signal.aborted) {
               combinedController.abort();
@@ -104,7 +104,7 @@
                 combinedController.abort();
               }, { once: true });
             }
-            
+
             // Listen for abort on the timeout controller
             if (controller.signal.aborted) {
               combinedController.abort();
@@ -149,9 +149,9 @@
 
           // Check if error should trigger a retry (network errors, timeouts)
           const shouldRetry = error.name === 'AbortError' || // timeout
-                             error.name === 'TypeError' || // network error
-                             error.name === 'NetworkError' ||
-                             error.message?.includes('fetch');
+            error.name === 'TypeError' || // network error
+            error.name === 'NetworkError' ||
+            error.message?.includes('fetch');
 
           if (shouldRetry) {
             const delay = calculateRetryDelay(attempt, baseDelay, exponentialBase, maxDelay, jitterFactor);
@@ -310,7 +310,7 @@
             },
             body: formData,
           }, { timeout: 60000 }); // Longer timeout for file uploads
-          
+
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
@@ -445,7 +445,7 @@
             },
             { maxRetries: 1, timeout: 5 * 60000 } // Fewer retries for AI calls, 5 minute timeout
           );
-          
+
           if (!response.ok) {
             throw new Error(`HTTP error: ${response.status}`);
           }
@@ -470,7 +470,7 @@
             },
             { maxRetries: 1, timeout: 5 * 60000 } // Fewer retries for AI calls, 5 minute timeout
           );
-          
+
           if (!response.ok) {
             throw new Error(`HTTP error: ${response.status}`);
           }
@@ -497,7 +497,7 @@
             body: JSON.stringify({ message, project: codicent, messageId }),
             signal,
           }, { maxRetries: 1, timeout: 5 * 60000 }); // Fewer retries for AI calls, 5 minute timeout
-          
+
           if (!response.ok) {
             throw new Error(`HTTP error: ${response.status}`);
           }
@@ -510,6 +510,88 @@
         }
       },
 
+      getChatReply4: async ({ message, codicent, messageId, maxPollingTime = 5 * 60 * 1000, pollingInterval = 2000 }) => {
+        const { token, log, baseUrl } = window.Codicent;
+
+        // Step 1: Start the async AI chat request
+        const startPayload = {
+          project: codicent,
+          message,
+        };
+
+        if (messageId) {
+          startPayload.messageId = messageId;
+        }
+
+        let promptMessageId;
+        try {
+          const startResponse = await robustFetch(`${baseUrl}app/StartAi2ChatAsync`, {
+            method: "POST",
+            headers: [
+              ["Content-Type", "application/json; charset=utf-8"],
+              ["Authorization", `Bearer ${token}`],
+            ],
+            body: JSON.stringify(startPayload),
+          });
+
+          if (!startResponse.ok) {
+            if (startResponse.status === 401) {
+              // Unauthorized, clear the token if needed
+              // token = '';
+            }
+            log(`Failed to start AI chat: ${startResponse.status}`);
+            return undefined;
+          }
+
+          const startJson = await startResponse.json();
+          promptMessageId = startJson.promptMessageId;
+
+          if (!promptMessageId) {
+            log("No promptMessageId returned from server");
+            return undefined;
+          }
+        } catch (error) {
+          log("Error starting AI chat:", error);
+          return undefined;
+        }
+
+        // Step 2: Poll for the result
+        const startTime = Date.now();
+
+        while (Date.now() - startTime < maxPollingTime) {
+          try {
+            const statusResponse = await robustFetch(`${baseUrl}app/GetAi2ChatReplyStatus?promptMessageId=${promptMessageId}`, {
+              method: "GET",
+              headers: [["Authorization", `Bearer ${token}`]],
+            });
+
+            if (statusResponse.status === 202) {
+              // Still processing, wait and try again
+              await new Promise((resolve) => setTimeout(resolve, pollingInterval));
+              continue;
+            }
+
+            if (!statusResponse.ok) {
+              log(`Error polling AI chat status: ${statusResponse.status}`);
+              return undefined;
+            }
+
+            // Got a result!
+            const json = await statusResponse.json();
+            const reply = json;
+
+            // Remove project mentions and trim
+            return reply.content.replace(`@${codicent}`, "").replace("@codicent-mini", "").trim();
+          } catch (error) {
+            log("Error polling AI chat status:", error);
+            return undefined;
+          }
+        }
+
+        // Timeout reached
+        log("Polling timeout reached for AI chat");
+        return undefined;
+      },
       /**
        * CRUD methods for data messages (create, read, update, delete)
        */
