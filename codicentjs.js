@@ -649,7 +649,7 @@
           if (!oldMessages.length) throw new Error("Old message not found");
           const oldMsg = oldMessages[0];
           // Extract all tags from the message content
-          const tagMatch = oldMsg.content.match(/#[a-zA-Z0-9_-]+/g) || [];
+          const tagMatch = getTags(oldMsg.content);
           if (!tagMatch.length) throw new Error("No tags found in old message");
           const tagString = tagMatch.join(" ").trim();
           const mention = `@${codicent}`;
