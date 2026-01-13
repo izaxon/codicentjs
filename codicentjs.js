@@ -607,7 +607,7 @@
           if (!codicent) throw new Error('codicent is required');
           const tagString = `#${tag}`;
           const mention = `@${codicent}`;
-          const message = `${mention} ${tagString} ${JSON.stringify(data)}`;
+          const message = `${mention} #data ${tagString} ${JSON.stringify(data)}`;
           return window.Codicent.postMessage({ message });
         },
 
