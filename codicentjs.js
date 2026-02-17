@@ -408,10 +408,10 @@
           throw error;
         }
       },
-      getDataMessages: async ({ codicent, tags, search }) => {
+      getDataMessages: async ({ codicent, tags, search, start, length }) => {
         const { token, log, baseUrl } = window.Codicent;
         try {
-          const response = await robustFetch(`${baseUrl}app/FindDataMessages?project=${codicent}${search ? "&search=" + encodeURIComponent(search) : ""}`,
+          const response = await robustFetch(`${baseUrl}app/FindDataMessages?project=${codicent}${search ? "&search=" + encodeURIComponent(search) : ""}${start ? "&start=" + start : ""}${length ? "&length=" + length : ""}`,
             {
               method: "POST",
               headers: [
@@ -617,11 +617,13 @@
          * @param {string} params.codicent - Project/codicent name
          * @param {string} params.tag - Single tag (table name)
          * @param {string} [params.search] - Search string
+         * @param {number} [params.start] - Start index for pagination (0-based)
+         * @param {number} [params.length] - Maximum number of messages to return
          * @returns {Promise<Array>} - Array of data messages
          */
-        read: async ({ codicent, tag, search = undefined }) => {
+        read: async ({ codicent, tag, search = undefined, start = undefined, length = undefined }) => {
           // If search is undefined, do not pass it to getDataMessages
-          const params = { codicent, tags: [tag], search };
+          const params = { codicent, tags: [tag], search, start, length };
           return window.Codicent.getDataMessages(params);
         },
 
