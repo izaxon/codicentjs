@@ -76,7 +76,7 @@
         exponentialBase = 2,
         jitterFactor = 0.1,
         retryOn = [408, 429, 500, 502, 503, 504],
-        timeout = 30000
+        timeout = 120000
       } = retryOptions;
 
       const { log } = window.Codicent;
@@ -408,17 +408,17 @@
           throw error;
         }
       },
-      getDataMessages: async ({ codicent, tags, search, start, length }) => {
+      getDataMessages: async ({ codicent, tags, search, start, length, dataFilters, afterTimestamp }) => {
         const { token, log, baseUrl } = window.Codicent;
         try {
-          const response = await robustFetch(`${baseUrl}app/FindDataMessages?project=${codicent}${search ? "&search=" + encodeURIComponent(search) : ""}${start ? "&start=" + start : ""}${length ? "&length=" + length : ""}`,
+          const response = await robustFetch(`${baseUrl}app/FindDataMessages?project=${codicent}${search ? "&search=" + encodeURIComponent(search) : ""}${start ? "&start=" + start : ""}${length ? "&length=" + length : ""}${afterTimestamp ? "&afterTimestamp=" + encodeURIComponent(afterTimestamp) : ""}`,
             {
               method: "POST",
               headers: [
                 ["Content-Type", "application/json; charset=utf-8"],
                 ["Authorization", `Bearer ${token}`],
               ],
-              body: JSON.stringify({ tags }),
+              body: JSON.stringify({ tags, dataFilters: dataFilters || undefined }),
             }
           );
           if (!response.ok) {
@@ -621,9 +621,9 @@
          * @param {number} [params.length] - Maximum number of messages to return
          * @returns {Promise<Array>} - Array of data messages
          */
-        read: async ({ codicent, tag, search = undefined, start = undefined, length = undefined }) => {
+        read: async ({ codicent, tag, search = undefined, start = undefined, length = undefined, dataFilters = undefined, afterTimestamp = undefined }) => {
           // If search is undefined, do not pass it to getDataMessages
-          const params = { codicent, tags: [tag], search, start, length };
+          const params = { codicent, tags: [tag], search, start, length, dataFilters, afterTimestamp };
           return window.Codicent.getDataMessages(params);
         },
 
